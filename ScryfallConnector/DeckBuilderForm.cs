@@ -52,6 +52,167 @@ namespace ScryfallConnector.Classes
             return suggestions;
         }
 
+        #region Probability testing
+
+        private List<ScryfallCard> GetOpeningHand(Deck deck)
+        {
+            List<ScryfallCard> retval = new List<ScryfallCard>();
+            try
+            {
+                deck.ShuffleCards();
+                for (int i = 0; i < 7; i++)
+                {
+                    retval.Add(deck.cards[i]);
+                }
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
+            return retval;
+        }
+
+        private int CountStartingLands(List<ScryfallCard> list)
+        {
+            int retval = 0;
+            try
+            {
+                foreach (ScryfallCard card in list)
+                {
+                    if (card.type_line.Contains("Land"))
+                    {
+                        retval++;
+                    }
+                }
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
+            return retval;
+        }
+
+        private int CountStartingNonLands(List<ScryfallCard> list)
+        {
+            int retval = 0;
+            try
+            {
+                foreach (ScryfallCard card in list)
+                {
+                    if (!card.type_line.Contains("Land"))
+                    {
+                        retval++;
+                    }
+                }
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
+            return retval;
+        }
+
+        private string RunProbabilityTest(Deck deck, int times, bool verboseLog)
+        {
+            string retval = string.Empty;
+            string handResult = string.Empty;
+            string handResultTemplate = "Opening hand {0}: {1} lands, {2} nonlands.";
+            string endResultTemplate = "Total hands: {0}. {1} lands, {2} nonlands, {3} total cards drawn.";
+            string averageTemplate = "Average lands per hand: {0}";
+            string landHandsTemplate = "Hands by land distribution: {0} one, {1} two, {2} three, {3} four, {4} five, {5} six, {6} seven.";
+            int counter = 0;
+            int lands = 0;
+            int nonlands = 0;
+            int totalLands = 0;
+            int totalNonLands = 0;
+            int totalCards = 0;
+            int oneLand = 0;
+            int twoLand = 0;
+            int threeLand = 0;
+            int fourLand = 0;
+            int fiveLand = 0;
+            int sixLand = 0;
+            int sevenLand = 0;
+            decimal averageLandsPerHand = 0;
+            List<ScryfallCard> hand = new List<ScryfallCard>();
+            try
+            {
+                for (int i = 0; i < times; i++)
+                {
+                    counter++;
+                    hand = GetOpeningHand(deck);
+                    lands = CountStartingLands(hand);
+                    nonlands = CountStartingNonLands(hand);
+                    handResult = String.Format(handResultTemplate, counter, lands, nonlands);
+                    if (verboseLog)
+                    {
+                        retval += handResult + Environment.NewLine;
+                    }
+                    totalLands += lands;
+                    totalNonLands += nonlands;
+                    totalCards += hand.Count;
+                    switch (lands)
+                    {
+                        case 1:
+                            oneLand++;
+                            break;
+                        case 2:
+                            twoLand++;
+                            break;
+                        case 3:
+                            threeLand++;
+                            break;
+                        case 4:
+                            fourLand++;
+                            break;
+                        case 5:
+                            fiveLand++;
+                            break;
+                        case 6:
+                            sixLand++;
+                            break;
+                        case 7:
+                            sevenLand++;
+                            break;
+                    }
+                }
+                averageLandsPerHand = totalLands / counter;
+                averageLandsPerHand = Math.Round(averageLandsPerHand, 2);
+                if (!verboseLog)
+                {
+                    retval = string.Format(endResultTemplate, counter, totalLands, totalNonLands, totalCards);
+                    retval += Environment.NewLine;
+                    retval += string.Format(averageTemplate, averageLandsPerHand);
+                    retval += Environment.NewLine;
+                    retval += string.Format(landHandsTemplate, oneLand, twoLand, threeLand, fourLand, fiveLand, sixLand, sevenLand);
+                }
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
+            return retval;
+        }
+
+        private void HandleTestButton()
+        {
+            this.btnTestStartingHands.Enabled = false;
+            if (int.Parse(this.txtTimes.Text) >= 5)
+            {
+                this.txtTestOutput.Text = RunProbabilityTest(this.deck, int.Parse(this.txtTimes.Text), false);
+            } else
+            {
+                this.txtTestOutput.Text = RunProbabilityTest(this.deck, int.Parse(this.txtTimes.Text), true);
+            }
+            this.btnTestStartingHands.Enabled = true;
+        }
+
+        #endregion
+
         #region AutoComplete
 
         private bool _canUpdate = true;
@@ -155,6 +316,13 @@ namespace ScryfallConnector.Classes
         }
 
         #endregion
+        private void UpdateControlStates()
+        {
+            this.btnSetCommander.Enabled = (this.currentCard != null && this.deck.commander == null);
+            this.btnAddCard.Enabled = (this.currentCard != null && this.deck.commander != null && this.txtCopies.Text != string.Empty);
+            if (this.deck.commander != null) this.txtCommander.Text = this.deck.commander.Name;
+            ShowCurrentCard();
+        }
 
         private void btnSetCommander_Click(object sender, EventArgs e)
         {
@@ -162,13 +330,7 @@ namespace ScryfallConnector.Classes
             UpdateControlStates();
         }
 
-        private void UpdateControlStates()
-        {
-            this.btnSetCommander.Enabled = (this.currentCard != null && this.deck.commander == null);
-            this.btnAddCard.Enabled = (this.currentCard != null && this.deck.commander != null);
-             if (this.deck.commander != null) this.txtCommander.Text = this.deck.commander.Name;
-            ShowCurrentCard();
-        }
+
 
         private void btnAddCard_Click(object sender, EventArgs e)
         {
@@ -178,7 +340,7 @@ namespace ScryfallConnector.Classes
                 this.deck.cards.Add(currentCard);
                 bs.ResetBindings(false);
             }
-
+            this.txtCopies.Text = string.Empty;
             UpdateControlStates();
                 
         }
@@ -187,6 +349,16 @@ namespace ScryfallConnector.Classes
         {
             this.deck.ShuffleCards();
             bs.ResetBindings(false);
+        }
+
+        private void btnTestStartingHands_Click(object sender, EventArgs e)
+        {
+            HandleTestButton();
+        }
+
+        private void txtCopies_TextChanged(object sender, EventArgs e)
+        {
+            UpdateControlStates();
         }
     }
 }

@@ -42,6 +42,11 @@
             this.txtCopies = new System.Windows.Forms.TextBox();
             this.lblCopies = new System.Windows.Forms.Label();
             this.btnShuffle = new System.Windows.Forms.Button();
+            this.btnTestStartingHands = new System.Windows.Forms.Button();
+            this.lblTimes = new System.Windows.Forms.Label();
+            this.txtTimes = new System.Windows.Forms.TextBox();
+            this.txtTestOutput = new System.Windows.Forms.TextBox();
+            this.lblDecklist = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.picCard)).BeginInit();
             this.SuspendLayout();
             // 
@@ -87,9 +92,9 @@
             // lstDeckList
             // 
             this.lstDeckList.FormattingEnabled = true;
-            this.lstDeckList.Location = new System.Drawing.Point(562, 40);
+            this.lstDeckList.Location = new System.Drawing.Point(562, 53);
             this.lstDeckList.Name = "lstDeckList";
-            this.lstDeckList.Size = new System.Drawing.Size(222, 251);
+            this.lstDeckList.Size = new System.Drawing.Size(222, 238);
             this.lstDeckList.TabIndex = 11;
             // 
             // timer2
@@ -111,6 +116,7 @@
             // 
             this.txtCommander.Location = new System.Drawing.Point(627, 12);
             this.txtCommander.Name = "txtCommander";
+            this.txtCommander.ReadOnly = true;
             this.txtCommander.Size = new System.Drawing.Size(157, 20);
             this.txtCommander.TabIndex = 13;
             // 
@@ -140,6 +146,7 @@
             this.txtCopies.Name = "txtCopies";
             this.txtCopies.Size = new System.Drawing.Size(28, 20);
             this.txtCopies.TabIndex = 14;
+            this.txtCopies.TextChanged += new System.EventHandler(this.txtCopies_TextChanged);
             // 
             // lblCopies
             // 
@@ -160,11 +167,60 @@
             this.btnShuffle.UseVisualStyleBackColor = true;
             this.btnShuffle.Click += new System.EventHandler(this.btnShuffle_Click);
             // 
+            // btnTestStartingHands
+            // 
+            this.btnTestStartingHands.Location = new System.Drawing.Point(13, 93);
+            this.btnTestStartingHands.Name = "btnTestStartingHands";
+            this.btnTestStartingHands.Size = new System.Drawing.Size(144, 23);
+            this.btnTestStartingHands.TabIndex = 17;
+            this.btnTestStartingHands.Text = "Test Starting Hands";
+            this.btnTestStartingHands.UseVisualStyleBackColor = true;
+            this.btnTestStartingHands.Click += new System.EventHandler(this.btnTestStartingHands_Click);
+            // 
+            // lblTimes
+            // 
+            this.lblTimes.AutoSize = true;
+            this.lblTimes.Location = new System.Drawing.Point(215, 99);
+            this.lblTimes.Name = "lblTimes";
+            this.lblTimes.Size = new System.Drawing.Size(31, 13);
+            this.lblTimes.TabIndex = 18;
+            this.lblTimes.Text = "times";
+            // 
+            // txtTimes
+            // 
+            this.txtTimes.Location = new System.Drawing.Point(163, 96);
+            this.txtTimes.Name = "txtTimes";
+            this.txtTimes.Size = new System.Drawing.Size(46, 20);
+            this.txtTimes.TabIndex = 19;
+            // 
+            // txtTestOutput
+            // 
+            this.txtTestOutput.Location = new System.Drawing.Point(13, 123);
+            this.txtTestOutput.Multiline = true;
+            this.txtTestOutput.Name = "txtTestOutput";
+            this.txtTestOutput.ReadOnly = true;
+            this.txtTestOutput.Size = new System.Drawing.Size(307, 138);
+            this.txtTestOutput.TabIndex = 20;
+            // 
+            // lblDecklist
+            // 
+            this.lblDecklist.AutoSize = true;
+            this.lblDecklist.Location = new System.Drawing.Point(562, 36);
+            this.lblDecklist.Name = "lblDecklist";
+            this.lblDecklist.Size = new System.Drawing.Size(89, 13);
+            this.lblDecklist.TabIndex = 21;
+            this.lblDecklist.Text = "Decklist (in order)";
+            // 
             // DeckBuilderForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(796, 312);
+            this.Controls.Add(this.lblDecklist);
+            this.Controls.Add(this.txtTestOutput);
+            this.Controls.Add(this.txtTimes);
+            this.Controls.Add(this.lblTimes);
+            this.Controls.Add(this.btnTestStartingHands);
             this.Controls.Add(this.btnShuffle);
             this.Controls.Add(this.lblCopies);
             this.Controls.Add(this.txtCopies);
@@ -200,5 +256,10 @@
         private System.Windows.Forms.TextBox txtCopies;
         private System.Windows.Forms.Label lblCopies;
         private System.Windows.Forms.Button btnShuffle;
+        private System.Windows.Forms.Button btnTestStartingHands;
+        private System.Windows.Forms.Label lblTimes;
+        private System.Windows.Forms.TextBox txtTimes;
+        private System.Windows.Forms.TextBox txtTestOutput;
+        private System.Windows.Forms.Label lblDecklist;
     }
 }
