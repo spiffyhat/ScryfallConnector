@@ -1,6 +1,6 @@
 ﻿namespace ScryfallConnector.Classes
 {
-    partial class DeckBuilderForm
+    partial class DeckStatisticsForm
     {
         /// <summary>
         /// Required designer variable.
@@ -211,7 +211,7 @@
             this.lblDecklist.TabIndex = 21;
             this.lblDecklist.Text = "Decklist (in order)";
             // 
-            // DeckBuilderForm
+            // DeckStatisticsForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
@@ -233,8 +233,8 @@
             this.Controls.Add(this.combobox1);
             this.Controls.Add(this.lblCommander);
             this.Controls.Add(this.lblSearch);
-            this.Name = "DeckBuilderForm";
-            this.Text = "DeckBuilderForm";
+            this.Name = "DeckStatisticsForm";
+            this.Text = "Deck Statistics";
             ((System.ComponentModel.ISupportInitialize)(this.picCard)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();

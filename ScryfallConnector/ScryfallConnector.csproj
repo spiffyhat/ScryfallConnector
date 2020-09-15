@@ -53,11 +53,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Classes\Deck.cs" />
-    <Compile Include="DeckBuilderForm.cs">
+    <Compile Include="DeckStatisticsForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="DeckBuilderForm.Designer.cs">
-      <DependentUpon>DeckBuilderForm.cs</DependentUpon>
+    <Compile Include="DeckStatisticsForm.Designer.cs">
+      <DependentUpon>DeckStatisticsForm.cs</DependentUpon>
     </Compile>
     <Compile Include="Classes\ScryfallCard.cs" />
     <Compile Include="Classes\ScryfallEngine.cs" />
@@ -69,8 +69,8 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <EmbeddedResource Include="DeckBuilderForm.resx">
-      <DependentUpon>DeckBuilderForm.cs</DependentUpon>
+    <EmbeddedResource Include="DeckStatisticsForm.resx">
+      <DependentUpon>DeckStatisticsForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Form1.resx">
       <DependentUpon>Form1.cs</DependentUpon>

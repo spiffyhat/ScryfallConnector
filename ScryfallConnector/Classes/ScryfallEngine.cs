@@ -101,6 +101,7 @@ namespace ScryfallConnector.Classes
             ScryfallCard card;
             try
             {
+                System.Threading.Thread.Sleep(100);
                 card = FetchNamedCard(text);
             }
             catch (Exception)

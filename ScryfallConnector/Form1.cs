@@ -310,7 +310,8 @@ namespace ScryfallConnector
 
         private void btnOpenDeckBuilder_Click(object sender, EventArgs e)
         {
-            DeckBuilderForm form = new DeckBuilderForm();
+            bool loadTestDeck = (MessageBox.Show("Use test deck?", "Test Deck", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes);
+            DeckStatisticsForm form = new DeckStatisticsForm(loadTestDeck);
             form.ShowDialog();
         }
     }

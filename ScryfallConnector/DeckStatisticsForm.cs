@@ -10,7 +10,7 @@ using System.Windows.Forms;
 
 namespace ScryfallConnector.Classes
 {
-    public partial class DeckBuilderForm : Form
+    public partial class DeckStatisticsForm : Form
     {
         ScryfallEngine engine = new ScryfallEngine();
         ScryfallCard currentCard = new ScryfallCard();
@@ -18,7 +18,7 @@ namespace ScryfallConnector.Classes
         bool validAutocomplete = false;
         BindingSource bs;
 
-        public DeckBuilderForm()
+        public DeckStatisticsForm(bool loadTestDeck)
         {
             InitializeComponent();
             timer2.Interval = 1000;
@@ -28,6 +28,11 @@ namespace ScryfallConnector.Classes
             lstDeckList.DisplayMember = "Name";
             lstDeckList.ValueMember = "id";
             lstDeckList.Sorted = false;
+            if (loadTestDeck)
+            {
+                this.LoadTestDeck();
+                this.UpdateControlStates();
+            }
         }
 
         private void ShowCurrentCard()
@@ -51,6 +56,27 @@ namespace ScryfallConnector.Classes
             }
             return suggestions;
         }
+
+        #region Test Deck
+
+        private void LoadTestDeck()
+        {
+            this.deck.commander = this.engine.GetNamedCard("Krrik, Son of Yawgmoth");
+            this.currentCard = this.engine.GetNamedCard("Shadowborn Apostle");
+            for (int i = 0; i < 66; i++)
+            {
+                this.deck.cards.Add(currentCard);
+                bs.ResetBindings(false);
+            }
+            this.currentCard = this.engine.GetNamedCard("Swamp");
+            for (int i = 0; i < 33; i++)
+            {
+                this.deck.cards.Add(currentCard);
+                bs.ResetBindings(false);
+            }
+        }
+
+        #endregion
 
         #region Probability testing
 
@@ -122,13 +148,16 @@ namespace ScryfallConnector.Classes
             string handResultTemplate = "Opening hand {0}: {1} lands, {2} nonlands.";
             string endResultTemplate = "Total hands: {0}. {1} lands, {2} nonlands, {3} total cards drawn.";
             string averageTemplate = "Average lands per hand: {0}";
-            string landHandsTemplate = "Hands by land distribution: {0} one, {1} two, {2} three, {3} four, {4} five, {5} six, {6} seven.";
+            string landHandsTemplate = "Hands by land distribution: {0} zero, {1} one, {2} two, {3} three, {4} four, {5} five, {6} six, {7} seven.";
             int counter = 0;
             int lands = 0;
             int nonlands = 0;
             int totalLands = 0;
             int totalNonLands = 0;
             int totalCards = 0;
+
+            // Hands by land distribution
+            int zeroLand = 0;
             int oneLand = 0;
             int twoLand = 0;
             int threeLand = 0;
@@ -136,7 +165,9 @@ namespace ScryfallConnector.Classes
             int fiveLand = 0;
             int sixLand = 0;
             int sevenLand = 0;
+
             decimal averageLandsPerHand = 0;
+
             List<ScryfallCard> hand = new List<ScryfallCard>();
             try
             {
@@ -156,6 +187,9 @@ namespace ScryfallConnector.Classes
                     totalCards += hand.Count;
                     switch (lands)
                     {
+                        case 0:
+                            zeroLand++;
+                            break;
                         case 1:
                             oneLand++;
                             break;
@@ -187,7 +221,7 @@ namespace ScryfallConnector.Classes
                     retval += Environment.NewLine;
                     retval += string.Format(averageTemplate, averageLandsPerHand);
                     retval += Environment.NewLine;
-                    retval += string.Format(landHandsTemplate, oneLand, twoLand, threeLand, fourLand, fiveLand, sixLand, sevenLand);
+                    retval += string.Format(landHandsTemplate, zeroLand, oneLand, twoLand, threeLand, fourLand, fiveLand, sixLand, sevenLand);
                 }
             }
             catch (Exception)
@@ -321,7 +355,7 @@ namespace ScryfallConnector.Classes
             this.btnSetCommander.Enabled = (this.currentCard != null && this.deck.commander == null);
             this.btnAddCard.Enabled = (this.currentCard != null && this.deck.commander != null && this.txtCopies.Text != string.Empty);
             if (this.deck.commander != null) this.txtCommander.Text = this.deck.commander.Name;
-            ShowCurrentCard();
+            if (this.currentCard != null) ShowCurrentCard();
         }
 
         private void btnSetCommander_Click(object sender, EventArgs e)
