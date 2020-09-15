@@ -13,16 +13,17 @@ namespace ScryfallConnector.Classes
 {
     public partial class DeckStatisticsForm : Form
     {
-        ScryfallEngine engine = new ScryfallEngine();
+        ScryfallEngine engine;
         ScryfallCard currentCard = new ScryfallCard();
         Deck deck = new Deck();
         bool validAutocomplete = false;
         BindingSource bs;
 
-        public DeckStatisticsForm(bool loadTestDeck)
+        public DeckStatisticsForm(SqliteDB db, bool loadTestDeck)
         {
             InitializeComponent();
             timer2.Interval = 1000;
+            engine = new ScryfallEngine(db);
             bs = new BindingSource();
             bs.DataSource = this.deck.cards;
             lstDeckList.DataSource = bs;
@@ -39,7 +40,7 @@ namespace ScryfallConnector.Classes
         {
             if (this.currentCard != null )
             {
-                this.picCard.Load(currentCard.image_uris.normal);
+                this.picCard.Image = engine.GetCardImage(currentCard);
             }
         }
 

@@ -12,16 +12,18 @@ using System.Windows.Forms;
 
 namespace ScryfallConnector
 {
-    public partial class Form1 : Form
+    public partial class MainForm : Form
     {
-        ScryfallEngine engine = new ScryfallEngine();
+        SqliteDB dB = new SqliteDB();
+        ScryfallEngine engine;
         ScryfallCard currentCard = new ScryfallCard();
         bool validAutocomplete = false;
 
-        public Form1()
+        public MainForm()
         {
             InitializeComponent();
             timer2.Interval = 1000;
+            engine = new ScryfallEngine(dB);
         }
 
         private  void button1_Click(object sender, EventArgs e)
@@ -36,7 +38,7 @@ namespace ScryfallConnector
         private void ShowCurrentCard()
         {
             this.treeView1.Nodes.Clear();
-            this.picCard.Load(currentCard.image_uris.normal);
+            this.picCard.Image = engine.GetCardImage(currentCard);
             this.txtCardName.Text = currentCard.Name;
             if (this.chkPopulateJson.Checked)
             {
@@ -311,7 +313,7 @@ namespace ScryfallConnector
         private void btnOpenDeckBuilder_Click(object sender, EventArgs e)
         {
             bool loadTestDeck = (MessageBox.Show("Use test deck?", "Test Deck", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes);
-            DeckStatisticsForm form = new DeckStatisticsForm(loadTestDeck);
+            DeckStatisticsForm form = new DeckStatisticsForm(this.dB, loadTestDeck);
             form.ShowDialog();
         }
     }

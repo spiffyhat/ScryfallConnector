@@ -6,6 +6,11 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Drawing;
+using System.Data.SqlServerCe;
+using System.Data;
+using System.IO;
+using System.Drawing.Imaging;
 
 namespace ScryfallConnector.Classes
 {
@@ -13,15 +18,63 @@ namespace ScryfallConnector.Classes
     {
 
         private HttpClient client;
+        SqliteDB db = null;
 
-        public ScryfallEngine()
+        public ScryfallEngine(SqliteDB db)
         {
+            this.db = db;
             client = new HttpClient();
             client.DefaultRequestHeaders.Accept.Clear();
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
             System.Net.ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls;
             client.BaseAddress = new Uri("https://api.scryfall.com/");
+        }
+
+        public Image GetCardImage(ScryfallCard card)
+        {
+            return FetchCardImage(card);
+        }
+
+        private Image FetchCardImage(ScryfallCard card)
+        {
+            Image retval = null;
+            string cardID = card.id;
+            string imageURL;
+            SqlCeCommand cmd = new SqlCeCommand("SELECT * FROM IMAGES_NORMAL WHERE Card_ID = \'" + cardID + "\'", db.connection);
+            SqlCeDataAdapter da = new SqlCeDataAdapter(cmd);
+            DataTable result = new DataTable();
+            da.Fill(result);
+            if (result.Rows.Count != 0)
+            {
+                imageURL = result.Rows[0]["Local_Filepath"].ToString();
+                retval = Bitmap.FromFile(".\\images\\" + imageURL);
+            } else
+            {
+                if (card.image_uris.normal != null)
+                {
+                    imageURL = card.image_uris.normal;
+
+                    System.Net.WebRequest request = System.Net.WebRequest.Create(imageURL);
+                    System.Net.WebResponse response = request.GetResponse();
+                    System.IO.Stream responseStream =
+                        response.GetResponseStream();
+                    retval = new Bitmap(responseStream);
+
+                    //string filePath = (".\\images\\" + cardID + ".jpg");
+                    string filePath = cardID + ".jpg";
+                    retval.Save(".\\images\\" + filePath);
+                    cmd = new SqlCeCommand("INSERT INTO Images_Normal (Card_ID, Image_URL, Local_Filepath)" +
+                                            "VALUES (@Card_ID, @Image_URL, @Local_Filepath)", db.connection);
+                    cmd.Parameters.AddWithValue("@Card_ID", cardID);
+                    cmd.Parameters.AddWithValue("@Image_URL", imageURL);
+                    cmd.Parameters.AddWithValue("@Local_Filepath", filePath);
+                    cmd.ExecuteNonQuery();
+                }
+                
+            }
+
+            return retval;
         }
 
         public ScryfallCard GetRandomCard()
