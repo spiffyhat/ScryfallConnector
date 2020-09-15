@@ -32,7 +32,6 @@ namespace ScryfallConnector.Classes
             if (loadTestDeck)
             {
                 this.LoadTestDeck();
-                this.UpdateControlStates();
             }
         }
 
@@ -72,9 +71,13 @@ namespace ScryfallConnector.Classes
             {
                 this.deck.cards.Add(currentCard);
             }
-            bs.ResetBindings(false);
+            
             this.currentCard = this.engine.GetNamedCard("Krrik, Son of Yawgmoth");
             this.deck.commander = this.currentCard;
+
+            // this triggers Update Control States
+            // I believe it triggers the selected index changed event for the list box
+            bs.ResetBindings(false);
         }
 
         #endregion
@@ -86,25 +89,56 @@ namespace ScryfallConnector.Classes
             this.deck.cards.RemoveAt(index);
         }
 
+        private void ReplaceCardWithAlternatePrint(int index, string replacementID)
+        {
+            this.deck.cards[index] = this.engine.FetchCardByID(replacementID);
+            this.currentCard = this.deck.cards[index];
+        }
+
         #endregion
 
-        #region Context Menu
+        #region Context Menus
 
         private void SetDeckContextMenu(MouseEventArgs e)
         {
             lstDeckList.SelectedIndex = lstDeckList.IndexFromPoint(e.X, e.Y);
             ctxDeckList.Items.Clear();
-            string cardName = this.deck.cards[this.lstDeckList.SelectedIndex].Name;
-            ctxDeckList = new ContextMenuStrip();
+            if (this.lstDeckList.SelectedIndex != -1)
+            {
+                string cardName = this.deck.cards[this.lstDeckList.SelectedIndex].Name;
+                ctxDeckList = new ContextMenuStrip();
 
-            string remove = string.Format("Remove {0}", cardName);
-            ctxDeckList.Items.Add(remove).Click += ctsRemove_Click;
+                string remove = string.Format("Remove {0}", cardName);
+                ctxDeckList.Items.Add(remove).Click += ctsRemove_Click;
 
-            string viewOnline = string.Format("View {0} on Scryfall.com", cardName);
-            ctxDeckList.Items.Add(viewOnline).Click += ctxViewOnline_Click;
-            lstDeckList.ContextMenuStrip = ctxDeckList;
+                string viewOnline = string.Format("View {0} on Scryfall.com", cardName);
+                ctxDeckList.Items.Add(viewOnline).Click += ctxViewOnline_Click;
+
+                string chooseSetVersion = "Choose specific print...";
+                ctxDeckList.Items.Add(chooseSetVersion, null, null);
+                SetPrintsContextSubmenu(ctxDeckList.Items[2] as ToolStripMenuItem);
+
+                lstDeckList.ContextMenuStrip = ctxDeckList;
+            }
+            
         }
 
+        private void SetPrintsContextSubmenu(ToolStripMenuItem menuItem)
+        {
+            List<ScryfallCard> prints = this.engine.FetchPrintsByUrl(this.deck.cards[this.lstDeckList.SelectedIndex].prints_search_uri);
+            if (prints.Count > 0)
+            {
+                foreach (ScryfallCard card in prints)
+                {
+                    menuItem.DropDownItems.Add(String.Format("{1} ({0})", card.set.ToUpper(), card.set_name), null, ctxChangePrint_Click).Tag = card.id;
+                }
+
+            }
+            else
+            {
+                menuItem.DropDownItems.Add("<empty>", null, null);
+            }
+        }
 
         #endregion
 
@@ -438,7 +472,7 @@ namespace ScryfallConnector.Classes
 
         private void lstDeckList_SelectedIndexChanged(object sender, EventArgs e)
         {
-            this.currentCard = this.deck.cards[this.lstDeckList.SelectedIndex];
+            if (this.lstDeckList.SelectedIndex != -1) this.currentCard = this.deck.cards[this.lstDeckList.SelectedIndex];
             UpdateControlStates();
         }
 
@@ -461,6 +495,13 @@ namespace ScryfallConnector.Classes
         private void ctsRemove_Click(object sender, EventArgs e)
         {
             RemoveCard(this.lstDeckList.SelectedIndex);
+            UpdateControlStates();
+        }
+
+        private void ctxChangePrint_Click(object sender, EventArgs e)
+        {
+            string replacementID= (sender as ToolStripMenuItem).Tag.ToString();
+            ReplaceCardWithAlternatePrint(this.lstDeckList.SelectedIndex, replacementID);
             UpdateControlStates();
         }
     }

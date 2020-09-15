@@ -47,6 +47,7 @@
             this.txtCardName.Location = new System.Drawing.Point(250, 12);
             this.txtCardName.Multiline = true;
             this.txtCardName.Name = "txtCardName";
+            this.txtCardName.ReadOnly = true;
             this.txtCardName.Size = new System.Drawing.Size(146, 34);
             this.txtCardName.TabIndex = 0;
             // 

@@ -29,7 +29,6 @@ namespace ScryfallConnector.Classes
             ScryfallCard response;
             try
             {
-                System.Threading.Thread.Sleep(100);
                 response = FetchRandomCard();
             }
             catch (Exception)
@@ -43,6 +42,7 @@ namespace ScryfallConnector.Classes
 
         private ScryfallCard FetchRandomCard()
         {
+            System.Threading.Thread.Sleep(100);
             string responseContent = string.Empty;
             HttpResponseMessage response = client.GetAsync("cards/random").Result;
             response.EnsureSuccessStatusCode();
@@ -70,6 +70,7 @@ namespace ScryfallConnector.Classes
 
         private List<string> FetchAutoCompleteResults(string text, bool include_extras)
         {
+            System.Threading.Thread.Sleep(100);
             List<string> retval = new List<string>();
             HttpResponseMessage response;
             string responseContent = string.Empty;
@@ -88,6 +89,41 @@ namespace ScryfallConnector.Classes
 
         }
 
+        public List<ScryfallCard> FetchPrintsByUrl(string text)
+        {
+            System.Threading.Thread.Sleep(100);
+            List<ScryfallCard> retval = new List<ScryfallCard>();
+            HttpResponseMessage response;
+            string responseContent = string.Empty;
+
+            response = client.GetAsync(text).Result;
+            response.EnsureSuccessStatusCode();
+            responseContent = response.Content.ReadAsStringAsync().Result;
+
+            PrintsSearchResult result = Newtonsoft.Json.JsonConvert.DeserializeObject<PrintsSearchResult>(responseContent);
+
+            foreach (ScryfallCard card in result.data)
+            {
+                retval.Add(card);
+            }
+            return retval;
+        }
+
+        public ScryfallCard FetchCardByID(string text)
+        {
+            System.Threading.Thread.Sleep(100);
+            ScryfallCard retval = new ScryfallCard();
+            HttpResponseMessage response;
+            string responseContent = string.Empty;
+
+            response = client.GetAsync("cards/" + text).Result;
+            response.EnsureSuccessStatusCode();
+            responseContent = response.Content.ReadAsStringAsync().Result;
+
+            retval = Newtonsoft.Json.JsonConvert.DeserializeObject<ScryfallCard>(responseContent);
+
+            return retval;
+        }
 
         private class AutoCompleteResult
         {
@@ -96,12 +132,24 @@ namespace ScryfallConnector.Classes
             public string[] data { get; set; }
         }
 
+        #region Set Search Result
+
+
+        public class PrintsSearchResult
+        {
+            public string _object { get; set; }
+            public int total_cards { get; set; }
+            public bool has_more { get; set; }
+            public ScryfallCard[] data { get; set; }
+        }
+
+        #endregion
+
         public ScryfallCard GetNamedCard(string text)
         {
             ScryfallCard card;
             try
             {
-                System.Threading.Thread.Sleep(100);
                 card = FetchNamedCard(text);
             }
             catch (Exception)
@@ -113,6 +161,7 @@ namespace ScryfallConnector.Classes
 
         private ScryfallCard FetchNamedCard(string text)
         {
+            System.Threading.Thread.Sleep(100);
             string responseContent = string.Empty;
             HttpResponseMessage response = client.GetAsync("cards/named?exact=" + text).Result;
             response.EnsureSuccessStatusCode();
