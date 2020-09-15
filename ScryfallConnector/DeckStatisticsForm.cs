@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Text;
@@ -61,19 +62,57 @@ namespace ScryfallConnector.Classes
 
         private void LoadTestDeck()
         {
-            this.deck.commander = this.engine.GetNamedCard("Krrik, Son of Yawgmoth");
             this.currentCard = this.engine.GetNamedCard("Shadowborn Apostle");
             for (int i = 0; i < 66; i++)
             {
                 this.deck.cards.Add(currentCard);
-                bs.ResetBindings(false);
             }
             this.currentCard = this.engine.GetNamedCard("Swamp");
             for (int i = 0; i < 33; i++)
             {
                 this.deck.cards.Add(currentCard);
-                bs.ResetBindings(false);
             }
+            bs.ResetBindings(false);
+            this.currentCard = this.engine.GetNamedCard("Krrik, Son of Yawgmoth");
+            this.deck.commander = this.currentCard;
+        }
+
+        #endregion
+
+        #region Removing cards
+
+        private void RemoveCard(int index)
+        {
+            this.deck.cards.RemoveAt(index);
+        }
+
+        #endregion
+
+        #region Context Menu
+
+        private void SetDeckContextMenu(MouseEventArgs e)
+        {
+            lstDeckList.SelectedIndex = lstDeckList.IndexFromPoint(e.X, e.Y);
+            ctxDeckList.Items.Clear();
+            string cardName = this.deck.cards[this.lstDeckList.SelectedIndex].Name;
+            ctxDeckList = new ContextMenuStrip();
+
+            string remove = string.Format("Remove {0}", cardName);
+            ctxDeckList.Items.Add(remove).Click += ctsRemove_Click;
+
+            string viewOnline = string.Format("View {0} on Scryfall.com", cardName);
+            ctxDeckList.Items.Add(viewOnline).Click += ctxViewOnline_Click;
+            lstDeckList.ContextMenuStrip = ctxDeckList;
+        }
+
+
+        #endregion
+
+        #region View online
+
+        private void ViewCardOnline(ScryfallCard card)
+        {
+            Process.Start(card.scryfall_uri);
         }
 
         #endregion
@@ -223,6 +262,7 @@ namespace ScryfallConnector.Classes
                     retval += Environment.NewLine;
                     retval += string.Format(landHandsTemplate, zeroLand, oneLand, twoLand, threeLand, fourLand, fiveLand, sixLand, sevenLand);
                 }
+                UpdateControlStates();
             }
             catch (Exception)
             {
@@ -356,6 +396,7 @@ namespace ScryfallConnector.Classes
             this.btnAddCard.Enabled = (this.currentCard != null && this.deck.commander != null && this.txtCopies.Text != string.Empty);
             if (this.deck.commander != null) this.txtCommander.Text = this.deck.commander.Name;
             if (this.currentCard != null) ShowCurrentCard();
+            this.lblDecklist.Text = string.Format("Decklist ({0})", this.deck.cards.Count);
         }
 
         private void btnSetCommander_Click(object sender, EventArgs e)
@@ -372,8 +413,8 @@ namespace ScryfallConnector.Classes
             for (int i = 0; i < int.Parse(txtCopies.Text); i++)
             {
                 this.deck.cards.Add(currentCard);
-                bs.ResetBindings(false);
             }
+            bs.ResetBindings(false);
             this.txtCopies.Text = string.Empty;
             UpdateControlStates();
                 
@@ -392,6 +433,34 @@ namespace ScryfallConnector.Classes
 
         private void txtCopies_TextChanged(object sender, EventArgs e)
         {
+            UpdateControlStates();
+        }
+
+        private void lstDeckList_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            this.currentCard = this.deck.cards[this.lstDeckList.SelectedIndex];
+            UpdateControlStates();
+        }
+
+        private void txtCommander_MouseClick(object sender, MouseEventArgs e)
+        {
+            if (this.deck.commander != null) this.currentCard = this.deck.commander;
+            UpdateControlStates();
+        }
+
+        private void lstDeckList_MouseDown(object sender, MouseEventArgs e)
+        {
+            SetDeckContextMenu(e);
+        }
+
+        private void ctxViewOnline_Click(object sender, EventArgs e)
+        {
+            ViewCardOnline(this.deck.cards[this.lstDeckList.SelectedIndex]);
+        }
+
+        private void ctsRemove_Click(object sender, EventArgs e)
+        {
+            RemoveCard(this.lstDeckList.SelectedIndex);
             UpdateControlStates();
         }
     }

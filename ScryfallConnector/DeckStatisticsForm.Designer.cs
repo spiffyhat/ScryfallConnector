@@ -34,6 +34,7 @@
             this.lblSearch = new System.Windows.Forms.Label();
             this.picCard = new System.Windows.Forms.PictureBox();
             this.lstDeckList = new System.Windows.Forms.ListBox();
+            this.ctxDeckList = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.timer2 = new System.Windows.Forms.Timer(this.components);
             this.btnAddCard = new System.Windows.Forms.Button();
             this.txtCommander = new System.Windows.Forms.TextBox();
@@ -47,7 +48,9 @@
             this.txtTimes = new System.Windows.Forms.TextBox();
             this.txtTestOutput = new System.Windows.Forms.TextBox();
             this.lblDecklist = new System.Windows.Forms.Label();
+            this.tsmRemoveCard = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.picCard)).BeginInit();
+            this.ctxDeckList.SuspendLayout();
             this.SuspendLayout();
             // 
             // chkIncludeExtras
@@ -91,11 +94,21 @@
             // 
             // lstDeckList
             // 
+            this.lstDeckList.ContextMenuStrip = this.ctxDeckList;
             this.lstDeckList.FormattingEnabled = true;
             this.lstDeckList.Location = new System.Drawing.Point(562, 53);
             this.lstDeckList.Name = "lstDeckList";
             this.lstDeckList.Size = new System.Drawing.Size(222, 238);
             this.lstDeckList.TabIndex = 11;
+            this.lstDeckList.SelectedIndexChanged += new System.EventHandler(this.lstDeckList_SelectedIndexChanged);
+            this.lstDeckList.MouseDown += new System.Windows.Forms.MouseEventHandler(this.lstDeckList_MouseDown);
+            // 
+            // ctxDeckList
+            // 
+            this.ctxDeckList.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.tsmRemoveCard});
+            this.ctxDeckList.Name = "ctxDeckList";
+            this.ctxDeckList.Size = new System.Drawing.Size(118, 26);
             // 
             // timer2
             // 
@@ -119,6 +132,7 @@
             this.txtCommander.ReadOnly = true;
             this.txtCommander.Size = new System.Drawing.Size(157, 20);
             this.txtCommander.TabIndex = 13;
+            this.txtCommander.MouseClick += new System.Windows.Forms.MouseEventHandler(this.txtCommander_MouseClick);
             // 
             // lblCommander
             // 
@@ -189,6 +203,7 @@
             // txtTimes
             // 
             this.txtTimes.Location = new System.Drawing.Point(163, 96);
+            this.txtTimes.MaxLength = 7;
             this.txtTimes.Name = "txtTimes";
             this.txtTimes.Size = new System.Drawing.Size(46, 20);
             this.txtTimes.TabIndex = 19;
@@ -210,6 +225,12 @@
             this.lblDecklist.Size = new System.Drawing.Size(89, 13);
             this.lblDecklist.TabIndex = 21;
             this.lblDecklist.Text = "Decklist (in order)";
+            // 
+            // tsmRemoveCard
+            // 
+            this.tsmRemoveCard.Name = "tsmRemoveCard";
+            this.tsmRemoveCard.Size = new System.Drawing.Size(180, 22);
+            this.tsmRemoveCard.Text = "Remove";
             // 
             // DeckStatisticsForm
             // 
@@ -236,6 +257,7 @@
             this.Name = "DeckStatisticsForm";
             this.Text = "Deck Statistics";
             ((System.ComponentModel.ISupportInitialize)(this.picCard)).EndInit();
+            this.ctxDeckList.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -261,5 +283,7 @@
         private System.Windows.Forms.TextBox txtTimes;
         private System.Windows.Forms.TextBox txtTestOutput;
         private System.Windows.Forms.Label lblDecklist;
+        private System.Windows.Forms.ContextMenuStrip ctxDeckList;
+        private System.Windows.Forms.ToolStripMenuItem tsmRemoveCard;
     }
 }
