@@ -286,7 +286,7 @@ namespace ScryfallConnector.Classes
                             break;
                     }
                 }
-                averageLandsPerHand = totalLands / counter;
+                averageLandsPerHand = (decimal)totalLands / (decimal)counter;
                 averageLandsPerHand = Math.Round(averageLandsPerHand, 2);
                 if (!verboseLog)
                 {
