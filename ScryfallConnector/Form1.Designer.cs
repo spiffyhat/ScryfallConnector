@@ -110,6 +110,7 @@
             this.treeView1.Name = "treeView1";
             this.treeView1.Size = new System.Drawing.Size(336, 188);
             this.treeView1.TabIndex = 7;
+            this.treeView1.DoubleClick += new System.EventHandler(this.treeView1_DoubleClick);
             // 
             // chkPopulateJson
             // 
@@ -134,7 +135,7 @@
             this.btnOpenDeckBuilder.UseVisualStyleBackColor = true;
             this.btnOpenDeckBuilder.Click += new System.EventHandler(this.btnOpenDeckBuilder_Click);
             // 
-            // Form1
+            // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
@@ -148,7 +149,7 @@
             this.Controls.Add(this.picCard);
             this.Controls.Add(this.btnRandom);
             this.Controls.Add(this.txtCardName);
-            this.Name = "Form1";
+            this.Name = "MainForm";
             this.Text = "Scryfall Connector";
             ((System.ComponentModel.ISupportInitialize)(this.picCard)).EndInit();
             this.ResumeLayout(false);

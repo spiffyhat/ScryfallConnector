@@ -326,5 +326,10 @@ namespace ScryfallConnector
             DeckStatisticsForm form = new DeckStatisticsForm(this.dB, loadTestDeck);
             form.ShowDialog();
         }
+
+        private void treeView1_DoubleClick(object sender, EventArgs e)
+        {
+            if (this.treeView1.SelectedNode != null) Clipboard.SetText(treeView1.SelectedNode.Text);
+        }
     }
 }

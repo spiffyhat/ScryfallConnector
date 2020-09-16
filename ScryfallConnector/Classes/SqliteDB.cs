@@ -16,13 +16,13 @@ namespace ScryfallConnector.Classes
         public SqlCeEngine engine;
         public SqliteDB()
         {
-            filePath = "DataSource=\"test.sdf\"; Password=\"test\"";
+            filePath = "DataSource=\"appDB.sdf\"; Password=\"d7a7a247-51bd-4244-81c7-2b406a23cc69\"";
             engine = new SqlCeEngine(filePath);
             if (!System.IO.Directory.Exists("images"))
             {
                 System.IO.Directory.CreateDirectory("images");
             }
-            if (!System.IO.File.Exists(".\\test.sdf"))
+            if (!System.IO.File.Exists(".\\appDB.sdf"))
             {
                 engine.CreateDatabase();
                 OpenConnection();

@@ -274,12 +274,15 @@ namespace ScryfallConnector.Classes
                 string responseContent = string.Empty;
                 HttpResponseMessage response;
 
-                SqlCeCommand cmd = new SqlCeCommand("SELECT * FROM CARD WHERE card_name = \'" + text.Replace("\'","") + "\'", db.connection);
+                SqlCeCommand cmd = new SqlCeCommand("SELECT * FROM CARD WHERE card_name = \'" + text.Replace("\'","\'\'") + "\'", db.connection);
                 SqlCeDataAdapter da = new SqlCeDataAdapter(cmd);
                 DataTable result = new DataTable();
                 da.Fill(result);
-
-                if (result.Rows.Count != 0)
+                if (result.Rows.Count > 1)
+                {
+                    Console.WriteLine(String.Format("Card {0} has more than one record!!!", text));
+                }
+                else if (result.Rows.Count != 0)
                 {
                     Console.WriteLine(String.Format("card {0} exists in DB", text));
                     retval = ScryfallCard.LoadFromDB(result.Rows[0]);
