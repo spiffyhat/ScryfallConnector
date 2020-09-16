@@ -41,6 +41,9 @@ namespace ScryfallConnector.Classes
             if (this.currentCard != null )
             {
                 this.picCard.Image = engine.GetCardImage(currentCard);
+            } else
+            {
+                this.picCard.Image = null;
             }
         }
 
@@ -88,12 +91,15 @@ namespace ScryfallConnector.Classes
         private void RemoveCard(int index)
         {
             this.deck.cards.RemoveAt(index);
+            this.currentCard = null;
+            bs.ResetBindings(false);
         }
 
         private void ReplaceCardWithAlternatePrint(int index, string replacementID)
         {
             this.deck.cards[index] = this.engine.FetchCardByID(replacementID);
             this.currentCard = this.deck.cards[index];
+            bs.ResetBindings(false);
         }
 
         #endregion
@@ -126,12 +132,23 @@ namespace ScryfallConnector.Classes
 
         private void SetPrintsContextSubmenu(ToolStripMenuItem menuItem)
         {
-            List<ScryfallCard> prints = this.engine.FetchPrintsByUrl(this.deck.cards[this.lstDeckList.SelectedIndex].prints_search_uri);
+            List<ScryfallEngine.Print> prints = this.engine.FetchPrintsByUrl(this.deck.cards[this.lstDeckList.SelectedIndex]);
+            int counter = 0;
             if (prints.Count > 0)
             {
-                foreach (ScryfallCard card in prints)
+                foreach (ScryfallEngine.Print p in prints)
                 {
-                    menuItem.DropDownItems.Add(String.Format("{1} ({0})", card.set.ToUpper(), card.set_name), null, ctxChangePrint_Click).Tag = card.id;
+                    counter++;
+                    if (counter >= 50)
+                    {
+                        menuItem.DropDownItems.Add("Too many results!", null, null);
+                        //at time of writing this (sep 15 2020) the card with the most printings that is NOT a basic land is Giant Growth at 42 printings
+                        break;
+                    } else
+                    {
+                        menuItem.DropDownItems.Add(String.Format("{1} ({0})", p.set.ToUpper(), p.set_name), null, ctxChangePrint_Click).Tag = p.card_ID;
+                    }
+                    
                 }
 
             }
@@ -427,6 +444,7 @@ namespace ScryfallConnector.Classes
         #endregion
         private void UpdateControlStates()
         {
+            if (this.lstDeckList.SelectedIndex != -1) this.currentCard = this.deck.cards[this.lstDeckList.SelectedIndex];
             this.btnSetCommander.Enabled = (this.currentCard != null && this.deck.commander == null);
             this.btnAddCard.Enabled = (this.currentCard != null && this.deck.commander != null && this.txtCopies.Text != string.Empty);
             if (this.deck.commander != null) this.txtCommander.Text = this.deck.commander.Name;
@@ -473,7 +491,6 @@ namespace ScryfallConnector.Classes
 
         private void lstDeckList_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (this.lstDeckList.SelectedIndex != -1) this.currentCard = this.deck.cards[this.lstDeckList.SelectedIndex];
             UpdateControlStates();
         }
 

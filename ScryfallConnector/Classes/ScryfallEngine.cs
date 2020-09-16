@@ -142,24 +142,63 @@ namespace ScryfallConnector.Classes
 
         }
 
-        public List<ScryfallCard> FetchPrintsByUrl(string text)
+        public List<Print> GetPrintsByUrl(ScryfallCard card)
+        {
+            return FetchPrintsByUrl(card);
+        }
+
+        public List<Print> FetchPrintsByUrl(ScryfallCard card)
         {
             System.Threading.Thread.Sleep(100);
-            List<ScryfallCard> retval = new List<ScryfallCard>();
+
+            List<string> retval = new List<string>();
+            List<ScryfallCard> cards = new List<ScryfallCard>();
+            PrintsList printsList = new PrintsList();
             HttpResponseMessage response;
+            string dbContent = string.Empty;
             string responseContent = string.Empty;
 
-            response = client.GetAsync(text).Result;
-            response.EnsureSuccessStatusCode();
-            responseContent = response.Content.ReadAsStringAsync().Result;
+            SqlCeCommand cmd = new SqlCeCommand("SELECT * FROM PRINTSLIST WHERE Card_Name = \'" + card.Name + "\'", db.connection);
+            SqlCeDataAdapter da = new SqlCeDataAdapter(cmd);
+            DataTable result = new DataTable();
+            da.Fill(result);
 
-            PrintsSearchResult result = Newtonsoft.Json.JsonConvert.DeserializeObject<PrintsSearchResult>(responseContent);
-
-            foreach (ScryfallCard card in result.data)
+            if (result.Rows.Count != 0)
             {
-                retval.Add(card);
+
+                dbContent = result.Rows[0]["Prints"].ToString();
+                printsList.prints = Newtonsoft.Json.JsonConvert.DeserializeObject<List<Print>>(dbContent);
+
+            } else
+            {
+                printsList.card_name = card.Name;
+                printsList.prints = new List<Print>();
+
+                response = client.GetAsync(card.prints_search_uri).Result;
+                response.EnsureSuccessStatusCode();
+                responseContent = response.Content.ReadAsStringAsync().Result;
+
+                PrintsSearchResult apiResult = Newtonsoft.Json.JsonConvert.DeserializeObject<PrintsSearchResult>(responseContent);
+
+                foreach (ScryfallCard datacard in apiResult.data)
+                {
+                    Print p = new Print();
+                    p.card_ID = datacard.id;
+                    p.set_name = datacard.set_name;
+                    p.set = datacard.set;
+                    printsList.prints.Add(p);
+                }
+
+                string serial = Newtonsoft.Json.JsonConvert.SerializeObject(printsList.prints);
+
+                cmd = new SqlCeCommand("INSERT INTO PrintsList (Card_Name, Prints)" +
+                                           "VALUES (@Card_Name, @Prints)", db.connection);
+                cmd.Parameters.AddWithValue("@Card_Name", card.Name);
+                cmd.Parameters.AddWithValue("@Prints", serial);
+                cmd.ExecuteNonQuery();
             }
-            return retval;
+
+            return printsList.prints;
         }
 
         public ScryfallCard FetchCardByID(string text)
@@ -188,12 +227,26 @@ namespace ScryfallConnector.Classes
         #region Set Search Result
 
 
-        public class PrintsSearchResult
+        private class PrintsSearchResult
         {
             public string _object { get; set; }
             public int total_cards { get; set; }
             public bool has_more { get; set; }
             public ScryfallCard[] data { get; set; }
+        }
+
+        public class PrintsList
+        {
+            public string id;
+            public string card_name;
+            public List<Print> prints;
+        }
+
+        public class Print
+        {
+            public string card_ID;
+            public string set_name;
+            public string set;
         }
 
         #endregion

@@ -42,6 +42,7 @@ namespace ScryfallConnector.Classes
         private void GenerateTables()
         {
             GenerateImageTable();
+            GeneratePrintsListTable();
         }
 
         private void GenerateImageTable()
@@ -56,6 +57,18 @@ namespace ScryfallConnector.Classes
             SqlCeCommand cmd = new SqlCeCommand(createImageTable, connection);
             cmd.ExecuteNonQuery();
             
+        }
+
+        private void GeneratePrintsListTable()
+        {
+            string createPrintsListTable = @"create table PrintsList
+                                        (
+                                        PrintsList_ID int primary key identity(1,1),
+                                        Card_Name nvarchar(100) not null,
+                                        Prints ntext not null
+                                        )";
+            SqlCeCommand cmd = new SqlCeCommand(createPrintsListTable, connection);
+            cmd.ExecuteNonQuery();
         }
 
     }
