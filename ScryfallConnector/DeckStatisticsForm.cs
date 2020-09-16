@@ -65,18 +65,18 @@ namespace ScryfallConnector.Classes
 
         private void LoadTestDeck()
         {
-            this.currentCard = this.engine.GetNamedCard("Shadowborn Apostle");
+            this.currentCard = this.engine.GetNamedCardExact("Shadowborn Apostle");
             for (int i = 0; i < 66; i++)
             {
                 this.deck.cards.Add(currentCard);
             }
-            this.currentCard = this.engine.GetNamedCard("Swamp");
+            this.currentCard = this.engine.GetNamedCardExact("Swamp");
             for (int i = 0; i < 33; i++)
             {
                 this.deck.cards.Add(currentCard);
             }
             
-            this.currentCard = this.engine.GetNamedCard("Krrik, Son of Yawgmoth");
+            this.currentCard = this.engine.GetNamedCardExact("Krrik, Son of Yawgmoth");
             this.deck.commander = this.currentCard;
 
             // this triggers Update Control States
@@ -385,7 +385,7 @@ namespace ScryfallConnector.Classes
             _needUpdate = false;
             if (this.validAutocomplete)
             {
-                currentCard = engine.GetNamedCard(combobox1.Text);
+                currentCard = engine.GetNamedCardExact(combobox1.Text);
                 UpdateControlStates();
             }
         }

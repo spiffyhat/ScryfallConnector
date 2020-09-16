@@ -41,7 +41,7 @@ namespace ScryfallConnector.Classes
             Image retval = null;
             string cardID = card.id;
             string imageURL;
-            SqlCeCommand cmd = new SqlCeCommand("SELECT * FROM IMAGES_NORMAL WHERE Card_ID = \'" + cardID + "\'", db.connection);
+            SqlCeCommand cmd = new SqlCeCommand("SELECT * FROM CardImage WHERE Card_ID = \'" + cardID + "\'", db.connection);
             SqlCeDataAdapter da = new SqlCeDataAdapter(cmd);
             DataTable result = new DataTable();
             da.Fill(result);
@@ -64,7 +64,7 @@ namespace ScryfallConnector.Classes
                     //string filePath = (".\\images\\" + cardID + ".jpg");
                     string filePath = cardID + ".jpg";
                     retval.Save(".\\images\\" + filePath);
-                    cmd = new SqlCeCommand("INSERT INTO Images_Normal (Card_ID, Image_URL, Local_Filepath)" +
+                    cmd = new SqlCeCommand("INSERT INTO CardImage (Card_ID, Image_URL, Local_Filepath)" +
                                             "VALUES (@Card_ID, @Image_URL, @Local_Filepath)", db.connection);
                     cmd.Parameters.AddWithValue("@Card_ID", cardID);
                     cmd.Parameters.AddWithValue("@Image_URL", imageURL);
@@ -251,12 +251,12 @@ namespace ScryfallConnector.Classes
 
         #endregion
 
-        public ScryfallCard GetNamedCard(string text)
+        public ScryfallCard GetNamedCardExact(string text)
         {
             ScryfallCard card;
             try
             {
-                card = FetchNamedCard(text);
+                card = FetchNamedCardExact(text);
             }
             catch (Exception)
             {
@@ -265,17 +265,45 @@ namespace ScryfallConnector.Classes
             return card;
         }
 
-        private ScryfallCard FetchNamedCard(string text)
+        private ScryfallCard FetchNamedCardExact(string text)
         {
-            System.Threading.Thread.Sleep(100);
-            string responseContent = string.Empty;
-            HttpResponseMessage response = client.GetAsync("cards/named?exact=" + text).Result;
-            response.EnsureSuccessStatusCode();
-            responseContent = response.Content.ReadAsStringAsync().Result;
+            ScryfallCard retval = null;
+            try
+            {
+                System.Threading.Thread.Sleep(100);
+                string responseContent = string.Empty;
+                HttpResponseMessage response;
 
-            ScryfallCard card = Newtonsoft.Json.JsonConvert.DeserializeObject<ScryfallCard>(responseContent);
+                SqlCeCommand cmd = new SqlCeCommand("SELECT * FROM CARD WHERE card_name = \'" + text.Replace("\'","") + "\'", db.connection);
+                SqlCeDataAdapter da = new SqlCeDataAdapter(cmd);
+                DataTable result = new DataTable();
+                da.Fill(result);
 
-            return card;
+                if (result.Rows.Count != 0)
+                {
+                    Console.WriteLine(String.Format("card {0} exists in DB", text));
+                    retval = ScryfallCard.LoadFromDB(result.Rows[0]);
+                }
+                else
+                {
+                    Console.WriteLine(String.Format("card {0} added to DB", text));
+                    response = client.GetAsync("cards/named?exact=" + text).Result;
+                    response.EnsureSuccessStatusCode();
+                    responseContent = response.Content.ReadAsStringAsync().Result;
+
+                    retval = Newtonsoft.Json.JsonConvert.DeserializeObject<ScryfallCard>(responseContent);
+
+                    retval.SaveToDB(db);
+                }
+            }
+            catch (Exception ex)
+            {
+                retval = null;
+                throw;
+            }
+           
+
+            return retval;
 
         }
 

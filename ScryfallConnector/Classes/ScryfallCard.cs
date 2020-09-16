@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
+using System.Data.SqlServerCe;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -119,7 +121,61 @@ namespace ScryfallConnector.Classes
         public String ToJson()
         {
             string json = Newtonsoft.Json.JsonConvert.SerializeObject(this);
+            this.json_string = json;
             return json;
         }
+
+        public string json_string;
+
+        public void SaveToDB(SqliteDB dB)
+        {
+            try
+            {
+                SqlCeCommand cmd = new SqlCeCommand();
+
+                string sqlInsert = "INSERT INTO Card";
+                string sqlFields = "(id, card_name, set_name, set_abbr, type_line, image_uris, json_string)";
+                string sqlValues = "VALUES (@id, @card_name, @set_name, @set_abbr, @type_line, @image_uris, @json_string)";
+
+                cmd = new SqlCeCommand(sqlInsert + sqlFields + sqlValues, dB.connection);
+
+                cmd.Parameters.AddWithValue("@id", this.id);
+                cmd.Parameters.AddWithValue("@card_name", this.Name);
+                cmd.Parameters.AddWithValue("@set_name", this.set_name);
+                cmd.Parameters.AddWithValue("@set_abbr", this.set);
+                cmd.Parameters.AddWithValue("@type_line", this.type_line);
+
+                string images = Newtonsoft.Json.JsonConvert.SerializeObject(this.image_uris);
+                cmd.Parameters.AddWithValue("@image_uris", images);
+
+                cmd.Parameters.AddWithValue("@json_string", this.ToJson());
+
+                cmd.ExecuteNonQuery();
+            }
+            catch (Exception ex)
+            {
+
+                throw;
+            }
+            
+        }
+
+        public static ScryfallCard LoadFromDB(DataRow row)
+        {
+            ScryfallCard retval = new ScryfallCard();
+
+            retval.id = row["id"].ToString();
+            retval.Name = row["card_name"].ToString();
+            retval.set_name = row["set_name"].ToString();
+            retval.set = row["set_abbr"].ToString();
+            retval.type_line = row["type_line"].ToString();
+
+            retval.image_uris = Newtonsoft.Json.JsonConvert.DeserializeObject<Image_Uris>(row["image_uris"].ToString());
+
+            retval.json_string = row["json_string"].ToString();
+
+            return retval;
+        }
+
     }
 }

@@ -38,13 +38,23 @@ namespace ScryfallConnector
         private void ShowCurrentCard()
         {
             this.treeView1.Nodes.Clear();
-            this.picCard.Image = engine.GetCardImage(currentCard);
-            this.txtCardName.Text = currentCard.Name;
-            if (this.chkPopulateJson.Checked)
+            if (this.currentCard != null)
             {
-                PopulateTreeView(this.currentCard.ToJson());
-                this.treeView1.ExpandAll();
+                this.picCard.Image = engine.GetCardImage(currentCard);
+                this.txtCardName.Text = currentCard.Name;
+                if (this.chkPopulateJson.Checked)
+                {
+                    PopulateTreeView(this.currentCard.ToJson());
+                    // this.treeView1.ExpandAll();
+                }
             }
+            else
+            {
+                this.picCard.Image = null;
+                this.txtCardName.Text = string.Empty;
+                this.treeView1.Nodes.Clear();
+            }
+           
         }
 
         private List<string> SuggestStrings(string text, bool include_extras)
@@ -132,9 +142,9 @@ namespace ScryfallConnector
         private void combobox1_SelectedIndexChanged(object sender, EventArgs e)
         {
             _needUpdate = false;
-            if (this.validAutocomplete)
+            if (this.validAutocomplete && (this.currentCard == null || this.currentCard.Name != combobox1.Text))
             {
-                currentCard = engine.GetNamedCard(combobox1.Text);
+                currentCard = engine.GetNamedCardExact(combobox1.Text);
                 ShowCurrentCard();
             }
         }

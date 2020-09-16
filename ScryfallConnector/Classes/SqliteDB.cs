@@ -43,13 +43,14 @@ namespace ScryfallConnector.Classes
         {
             GenerateImageTable();
             GeneratePrintsListTable();
+            GenerateCardsTable();
         }
 
         private void GenerateImageTable()
         {
-            string createImageTable = @"create table Images_Normal
+            string createImageTable = @"create table CardImage
                                         (
-                                        Images_Normal_ID int primary key identity(1,1),
+                                        CardImage_PK int primary key identity(1,1),
                                         Card_ID nvarchar(100) not null,
                                         Image_URL nvarchar(250) not null,
                                         Local_Filepath nvarchar(250) not null
@@ -63,7 +64,7 @@ namespace ScryfallConnector.Classes
         {
             string createPrintsListTable = @"create table PrintsList
                                         (
-                                        PrintsList_ID int primary key identity(1,1),
+                                        PrintsList_PK int primary key identity(1,1),
                                         Card_Name nvarchar(100) not null,
                                         Prints ntext not null
                                         )";
@@ -71,5 +72,24 @@ namespace ScryfallConnector.Classes
             cmd.ExecuteNonQuery();
         }
 
+        private void GenerateCardsTable()
+        {
+            //this is gonna be the big one
+            string createCardsTable = @"create table Card";
+            createCardsTable += "(";
+            createCardsTable += "Card_PK int primary key identity(1,1),";
+            createCardsTable += "id nvarchar(100) not null,";
+            createCardsTable += "card_name nvarchar(100) not null,";
+            createCardsTable += "set_name nvarchar(100) not null,";
+            createCardsTable += "set_abbr nvarchar(10) not null,";
+            createCardsTable += "type_line nvarchar(100),";
+            createCardsTable += "image_uris ntext,";
+            createCardsTable += "json_string ntext not null";
+            createCardsTable += ")";
+
+            SqlCeCommand cmd = new SqlCeCommand(createCardsTable, connection);
+            cmd.ExecuteNonQuery();
+
+        }
     }
 }
