@@ -83,6 +83,7 @@ namespace ScryfallConnector.Classes
             createCardsTable += "set_name nvarchar(100) not null,";
             createCardsTable += "set_abbr nvarchar(10) not null,";
             createCardsTable += "type_line nvarchar(100),";
+            createCardsTable += "prints_search_uri ntext,";
             createCardsTable += "image_uris ntext,";
             createCardsTable += "json_string ntext not null";
             createCardsTable += ")";

@@ -158,19 +158,20 @@ namespace ScryfallConnector.Classes
             string dbContent = string.Empty;
             string responseContent = string.Empty;
 
-            SqlCeCommand cmd = new SqlCeCommand("SELECT * FROM PRINTSLIST WHERE Card_Name = \'" + card.Name + "\'", db.connection);
+            SqlCeCommand cmd = new SqlCeCommand("SELECT * FROM PRINTSLIST WHERE Card_Name = \'" + card.Name.Replace("\'", "\'\'") + "\'", db.connection);
             SqlCeDataAdapter da = new SqlCeDataAdapter(cmd);
             DataTable result = new DataTable();
             da.Fill(result);
 
             if (result.Rows.Count != 0)
             {
-
+                Console.WriteLine(String.Format("prints list exists in DB for {0}", card.Name));
                 dbContent = result.Rows[0]["Prints"].ToString();
                 printsList.prints = Newtonsoft.Json.JsonConvert.DeserializeObject<List<Print>>(dbContent);
 
             } else
             {
+                
                 printsList.card_name = card.Name;
                 printsList.prints = new List<Print>();
 
@@ -196,6 +197,8 @@ namespace ScryfallConnector.Classes
                 cmd.Parameters.AddWithValue("@Card_Name", card.Name);
                 cmd.Parameters.AddWithValue("@Prints", serial);
                 cmd.ExecuteNonQuery();
+
+                Console.WriteLine(String.Format("prints added to DB for {0}", card.Name));
             }
 
             return printsList.prints;
@@ -289,7 +292,7 @@ namespace ScryfallConnector.Classes
                 }
                 else
                 {
-                    Console.WriteLine(String.Format("card {0} added to DB", text));
+                    
                     response = client.GetAsync("cards/named?exact=" + text).Result;
                     response.EnsureSuccessStatusCode();
                     responseContent = response.Content.ReadAsStringAsync().Result;
@@ -297,6 +300,7 @@ namespace ScryfallConnector.Classes
                     retval = Newtonsoft.Json.JsonConvert.DeserializeObject<ScryfallCard>(responseContent);
 
                     retval.SaveToDB(db);
+                    Console.WriteLine(String.Format("card {0} added to DB", text));
                 }
             }
             catch (Exception ex)

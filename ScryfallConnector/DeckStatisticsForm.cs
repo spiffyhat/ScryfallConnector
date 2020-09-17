@@ -69,18 +69,25 @@ namespace ScryfallConnector.Classes
             for (int i = 0; i < 66; i++)
             {
                 this.deck.cards.Add(currentCard);
+                
             }
+            engine.FetchPrintsByUrl(currentCard);
+
             this.currentCard = this.engine.GetNamedCardExact("Swamp");
             for (int i = 0; i < 33; i++)
             {
                 this.deck.cards.Add(currentCard);
+                
             }
-            
-            this.currentCard = this.engine.GetNamedCardExact("Krrik, Son of Yawgmoth");
+            engine.FetchPrintsByUrl(currentCard);
+
+            this.currentCard = this.engine.GetNamedCardExact("K\'rrik, Son of Yawgmoth");
+            engine.FetchPrintsByUrl(currentCard);
             this.deck.commander = this.currentCard;
 
-            // this triggers Update Control States
+            // this triggers Update Control States IN THIS CASE ONLY.
             // I believe it triggers the selected index changed event for the list box
+            // specifically because the number of items in the listbox changes
             bs.ResetBindings(false);
         }
 
@@ -444,7 +451,6 @@ namespace ScryfallConnector.Classes
         #endregion
         private void UpdateControlStates()
         {
-            if (this.lstDeckList.SelectedIndex != -1) this.currentCard = this.deck.cards[this.lstDeckList.SelectedIndex];
             this.btnSetCommander.Enabled = (this.currentCard != null && this.deck.commander == null);
             this.btnAddCard.Enabled = (this.currentCard != null && this.deck.commander != null && this.txtCopies.Text != string.Empty);
             if (this.deck.commander != null) this.txtCommander.Text = this.deck.commander.Name;
@@ -476,7 +482,9 @@ namespace ScryfallConnector.Classes
         private void btnShuffle_Click(object sender, EventArgs e)
         {
             this.deck.ShuffleCards();
+            if (this.lstDeckList.SelectedIndex != -1) this.currentCard = this.deck.cards[this.lstDeckList.SelectedIndex];
             bs.ResetBindings(false);
+            UpdateControlStates();
         }
 
         private void btnTestStartingHands_Click(object sender, EventArgs e)
@@ -491,6 +499,7 @@ namespace ScryfallConnector.Classes
 
         private void lstDeckList_SelectedIndexChanged(object sender, EventArgs e)
         {
+            if (this.lstDeckList.SelectedIndex != -1) this.currentCard = this.deck.cards[this.lstDeckList.SelectedIndex];
             UpdateControlStates();
         }
 

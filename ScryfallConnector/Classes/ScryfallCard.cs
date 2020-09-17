@@ -134,8 +134,8 @@ namespace ScryfallConnector.Classes
                 SqlCeCommand cmd = new SqlCeCommand();
 
                 string sqlInsert = "INSERT INTO Card";
-                string sqlFields = "(id, card_name, set_name, set_abbr, type_line, image_uris, json_string)";
-                string sqlValues = "VALUES (@id, @card_name, @set_name, @set_abbr, @type_line, @image_uris, @json_string)";
+                string sqlFields = "(id, card_name, set_name, set_abbr, type_line, prints_search_uri, image_uris, json_string)";
+                string sqlValues = "VALUES (@id, @card_name, @set_name, @set_abbr, @type_line, @prints_search_uri, @image_uris, @json_string)";
 
                 cmd = new SqlCeCommand(sqlInsert + sqlFields + sqlValues, dB.connection);
 
@@ -144,6 +144,7 @@ namespace ScryfallConnector.Classes
                 cmd.Parameters.AddWithValue("@set_name", this.set_name);
                 cmd.Parameters.AddWithValue("@set_abbr", this.set);
                 cmd.Parameters.AddWithValue("@type_line", this.type_line);
+                cmd.Parameters.AddWithValue("@prints_search_uri", this.prints_search_uri);
 
                 string images = Newtonsoft.Json.JsonConvert.SerializeObject(this.image_uris);
                 cmd.Parameters.AddWithValue("@image_uris", images);
@@ -169,6 +170,7 @@ namespace ScryfallConnector.Classes
             retval.set_name = row["set_name"].ToString();
             retval.set = row["set_abbr"].ToString();
             retval.type_line = row["type_line"].ToString();
+            retval.prints_search_uri = row["prints_search_uri"].ToString();
 
             retval.image_uris = Newtonsoft.Json.JsonConvert.DeserializeObject<Image_Uris>(row["image_uris"].ToString());
 
