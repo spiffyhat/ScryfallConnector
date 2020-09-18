@@ -11,16 +11,38 @@ namespace ScryfallConnector.Classes
 
     public class ScryfallCard
     {
-        public string _object { get; set; }
-        public string id { get; set; }
-        public string oracle_id { get; set; }
+        // Critical to see first:
+        public int card_PK { get; set; }
+        public string Name { get; set; } //has to be capitalized for some reason
+
+        // Internal 
+        public DateTime dateAdded { get; private set; }
+        public DateTime dateModified { get; private set; }
+        public int modifiedMethod { get; private set; } // TODO change to enum
+
+        // Core card fields
+        public int arena_id { get; set; }
+        public string id { get; set; } 
+        public string lang { get; set; }
+        public int mtgo_id { get; set; }
+        public int mtgo_foil_id { get; set; }
         public object[] multiverse_ids { get; set; }
         public int tcgplayer_id { get; set; }
-        public string Name { get; set; }
-        public string lang { get; set; }
-        public string released_at { get; set; }
-        public string Uri { get; set; }
+        public string _object { get; set; } // should always be "card"
+        public string oracle_id { get; set; }
+        public string prints_search_uri { get; set; }
+        public string rulings_uri { get; set; }
         public string scryfall_uri { get; set; }
+        public string Uri { get; set; }
+
+        // Gameplay fields
+
+
+        // Print fields
+
+
+        // unsorted
+        public string released_at { get; set; }
         public string layout { get; set; }
         public bool highres_image { get; set; }
         public Image_Uris image_uris { get; set; }
@@ -42,14 +64,13 @@ namespace ScryfallConnector.Classes
         public bool promo { get; set; }
         public bool reprint { get; set; }
         public bool variation { get; set; }
-        public string set { get; set; }
+        public string set_abbr { get; set; }
         public string set_name { get; set; }
         public string set_type { get; set; }
         public string set_uri { get; set; }
         public string set_search_uri { get; set; }
         public string scryfall_set_uri { get; set; }
-        public string rulings_uri { get; set; }
-        public string prints_search_uri { get; set; }
+        
         public string collector_number { get; set; }
         public bool digital { get; set; }
         public string rarity { get; set; }
@@ -68,6 +89,13 @@ namespace ScryfallConnector.Classes
         public Prices prices { get; set; }
         public Related_Uris related_uris { get; set; }
         public Purchase_Uris purchase_uris { get; set; }
+
+        public Preview preview { get; set; }
+
+        public class Preview
+        {
+
+        }
 
         public class Image_Uris
         {
@@ -121,11 +149,17 @@ namespace ScryfallConnector.Classes
         public String ToJson()
         {
             string json = Newtonsoft.Json.JsonConvert.SerializeObject(this);
-            this.json_string = json;
+            //this.json_string = json;
             return json;
         }
 
-        public string json_string;
+        public static ScryfallCard FromJson(string json)
+        {
+            ScryfallCard card = Newtonsoft.Json.JsonConvert.DeserializeObject<ScryfallCard>(json);
+            return card;
+        }
+
+        //public string json_string;
 
         public void SaveToDB(SqliteDB dB)
         {
@@ -134,22 +168,22 @@ namespace ScryfallConnector.Classes
                 SqlCeCommand cmd = new SqlCeCommand();
 
                 string sqlInsert = "INSERT INTO Card";
-                string sqlFields = "(id, card_name, set_name, set_abbr, type_line, prints_search_uri, image_uris, json_string)";
-                string sqlValues = "VALUES (@id, @card_name, @set_name, @set_abbr, @type_line, @prints_search_uri, @image_uris, @json_string)";
+                string sqlFields = "(id, name, set_name, set_abbr, type_line, prints_search_uri, image_uris)";
+                string sqlValues = "VALUES (@id, @name, @set_name, @set_abbr, @type_line, @prints_search_uri, @image_uris)";
 
                 cmd = new SqlCeCommand(sqlInsert + sqlFields + sqlValues, dB.connection);
 
                 cmd.Parameters.AddWithValue("@id", this.id);
-                cmd.Parameters.AddWithValue("@card_name", this.Name);
+                cmd.Parameters.AddWithValue("@name", this.Name);
                 cmd.Parameters.AddWithValue("@set_name", this.set_name);
-                cmd.Parameters.AddWithValue("@set_abbr", this.set);
+                cmd.Parameters.AddWithValue("@set_abbr", this.set_abbr);
                 cmd.Parameters.AddWithValue("@type_line", this.type_line);
                 cmd.Parameters.AddWithValue("@prints_search_uri", this.prints_search_uri);
 
                 string images = Newtonsoft.Json.JsonConvert.SerializeObject(this.image_uris);
                 cmd.Parameters.AddWithValue("@image_uris", images);
 
-                cmd.Parameters.AddWithValue("@json_string", this.ToJson());
+                //cmd.Parameters.AddWithValue("@json_string", this.ToJson());
 
                 cmd.ExecuteNonQuery();
             }
@@ -168,13 +202,13 @@ namespace ScryfallConnector.Classes
             retval.id = row["id"].ToString();
             retval.Name = row["card_name"].ToString();
             retval.set_name = row["set_name"].ToString();
-            retval.set = row["set_abbr"].ToString();
+            retval.set_abbr = row["set_abbr"].ToString();
             retval.type_line = row["type_line"].ToString();
             retval.prints_search_uri = row["prints_search_uri"].ToString();
 
             retval.image_uris = Newtonsoft.Json.JsonConvert.DeserializeObject<Image_Uris>(row["image_uris"].ToString());
 
-            retval.json_string = row["json_string"].ToString();
+            //retval.json_string = row["json_string"].ToString();
 
             return retval;
         }

@@ -101,7 +101,7 @@ namespace ScryfallConnector.Classes
             response.EnsureSuccessStatusCode();
             responseContent = response.Content.ReadAsStringAsync().Result;
 
-            ScryfallCard card = Newtonsoft.Json.JsonConvert.DeserializeObject<ScryfallCard>(responseContent);
+            ScryfallCard card = ScryfallCard.FromJson(responseContent);
 
             return card;
 
@@ -186,7 +186,7 @@ namespace ScryfallConnector.Classes
                     Print p = new Print();
                     p.card_ID = datacard.id;
                     p.set_name = datacard.set_name;
-                    p.set = datacard.set;
+                    p.set = datacard.set_abbr;
                     printsList.prints.Add(p);
                 }
 
@@ -215,7 +215,7 @@ namespace ScryfallConnector.Classes
             response.EnsureSuccessStatusCode();
             responseContent = response.Content.ReadAsStringAsync().Result;
 
-            retval = Newtonsoft.Json.JsonConvert.DeserializeObject<ScryfallCard>(responseContent);
+            retval = ScryfallCard.FromJson(responseContent);
 
             return retval;
         }
@@ -240,7 +240,6 @@ namespace ScryfallConnector.Classes
 
         public class PrintsList
         {
-            public string id;
             public string card_name;
             public List<Print> prints;
         }
@@ -277,7 +276,7 @@ namespace ScryfallConnector.Classes
                 string responseContent = string.Empty;
                 HttpResponseMessage response;
 
-                SqlCeCommand cmd = new SqlCeCommand("SELECT * FROM CARD WHERE card_name = \'" + text.Replace("\'","\'\'") + "\'", db.connection);
+                SqlCeCommand cmd = new SqlCeCommand("SELECT * FROM CARD WHERE name = \'" + text.Replace("\'","\'\'") + "\'", db.connection);
                 SqlCeDataAdapter da = new SqlCeDataAdapter(cmd);
                 DataTable result = new DataTable();
                 da.Fill(result);
@@ -297,7 +296,7 @@ namespace ScryfallConnector.Classes
                     response.EnsureSuccessStatusCode();
                     responseContent = response.Content.ReadAsStringAsync().Result;
 
-                    retval = Newtonsoft.Json.JsonConvert.DeserializeObject<ScryfallCard>(responseContent);
+                    retval = ScryfallCard.FromJson(responseContent);
 
                     retval.SaveToDB(db);
                     Console.WriteLine(String.Format("card {0} added to DB", text));
