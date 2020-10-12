@@ -180,7 +180,7 @@ namespace ScryfallConnector.Classes
                 createCardsTable += "set_search_uri ntext not null,";
                 createCardsTable += "set_type ntext not null,";
                 createCardsTable += "set_uri ntext not null,";
-                createCardsTable += "set_abbr nvarchar(25) not null,"; //THIS CAN'T JUST BE "SET", BANNED IN SQL
+                createCardsTable += "[set] nvarchar(25) not null,"; //THIS CAN'T JUST BE "SET", BANNED IN SQL
                 createCardsTable += "story_spotlight bit not null,";
                 createCardsTable += "textless bit not null,";
                 createCardsTable += "variation bit not null,";

@@ -95,13 +95,23 @@ namespace ScryfallConnector.Classes
 
         private ScryfallCard FetchRandomCard()
         {
-            System.Threading.Thread.Sleep(100);
-            string responseContent = string.Empty;
-            HttpResponseMessage response = client.GetAsync("cards/random").Result;
-            response.EnsureSuccessStatusCode();
-            responseContent = response.Content.ReadAsStringAsync().Result;
+            ScryfallCard card;
+            try
+            {
+                System.Threading.Thread.Sleep(100);
+                string responseContent = string.Empty;
+                HttpResponseMessage response = client.GetAsync("cards/random").Result;
+                response.EnsureSuccessStatusCode();
+                responseContent = response.Content.ReadAsStringAsync().Result;
 
-            ScryfallCard card = ScryfallCard.FromJson(responseContent);
+                card = ScryfallCard.FromJson(responseContent);
+            }
+            catch (Exception ex)
+            {
+
+                throw;
+            }
+            
 
             return card;
 
@@ -186,7 +196,7 @@ namespace ScryfallConnector.Classes
                     Print p = new Print();
                     p.card_ID = datacard.id;
                     p.set_name = datacard.set_name;
-                    p.set = datacard.set_abbr;
+                    p.set = datacard.set;
                     printsList.prints.Add(p);
                 }
 
