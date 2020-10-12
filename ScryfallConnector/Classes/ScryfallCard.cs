@@ -5,6 +5,7 @@ using System.Data;
 using System.Data.SqlServerCe;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -13,6 +14,7 @@ namespace ScryfallConnector.Classes
 
     public class ScryfallCard
     {
+        #region Properties
         // Critical to see first:
         public int card_PK { get; set; }
         public string Name { get; set; } //has to be capitalized for some reason
@@ -30,7 +32,7 @@ namespace ScryfallConnector.Classes
         public int mtgo_foil_id { get; set; }
         public object[] multiverse_ids { get; set; }
         public int tcgplayer_id { get; set; }
-        public string _object { get; set; } // should always be "card"
+        public string @object { get; set; } // should always be "card"
         public string oracle_id { get; set; }
         public string prints_search_uri { get; set; }
         public string rulings_uri { get; set; }
@@ -38,11 +40,11 @@ namespace ScryfallConnector.Classes
         public string Uri { get; set; }
 
         // Gameplay fields
-        public string all_parts { get; set; }
+        public string[] all_parts { get; set; }
         public string[] card_faces { get; set; }
         public float cmc { get; set; }
         public string[] color_identity { get; set; }
-        public string color_indicator { get; set; }
+        public string[] color_indicator { get; set; }
         public string[] colors { get; set; }
         public int edhrec_rank { get; set; }
         public bool foil { get; set; }
@@ -57,7 +59,7 @@ namespace ScryfallConnector.Classes
         public string oracle_text { get; set; }
         public bool oversized { get; set; }
         public string power { get; set; }
-        public string produced_mana { get; set; }
+        public string[] produced_mana { get; set; }
         public bool reserved { get; set; }
         public string toughness { get; set; }
         public string type_line { get; set; }
@@ -103,9 +105,8 @@ namespace ScryfallConnector.Classes
         public string watermark { get; set; }
         public Preview preview { get; set; }
 
-        // unsorted
-        public string[] artist_ids { get; set; } // might be unused 
-
+        #endregion
+        #region Subclasses
         public class Preview
         {
             // TODO add preview properties
@@ -159,7 +160,7 @@ namespace ScryfallConnector.Classes
             public string cardmarket { get; set; }
             public string cardhoarder { get; set; }
         }
-
+        #endregion
         public String ToJson()
         {
             string json = Newtonsoft.Json.JsonConvert.SerializeObject(this);
@@ -186,31 +187,12 @@ namespace ScryfallConnector.Classes
         {
             try
             {
-                SqlCeCommand cmd = new SqlCeCommand();
 
-                string sqlInsert = "INSERT INTO Card";
-                string sqlFields = "(dateAdded, dateModified, modifiedMethod, id, name, set_name, [set], type_line, prints_search_uri, image_uris)";
-                string sqlValues = "VALUES (@dateAdded, @dateModified, @modifiedMethod, @id, @name, @set_name, @set, @type_line, @prints_search_uri, @image_uris)";
+                SqlCeCommand testCmd = GenerateSaveSqlCmd(dB);
+                LoadCardIntoSqlCmd(this, ref testCmd);
 
-                cmd = new SqlCeCommand(sqlInsert + sqlFields + sqlValues, dB.connection);
+                testCmd.ExecuteNonQuery();
 
-                cmd.Parameters.AddWithValue("@dateAdded", DateTime.Now.ToString());
-                cmd.Parameters.AddWithValue("@dateModified", DateTime.Now.ToString());
-                cmd.Parameters.AddWithValue("@modifiedMethod", 1);
-
-                cmd.Parameters.AddWithValue("@id", this.id);
-                cmd.Parameters.AddWithValue("@name", this.Name);
-                cmd.Parameters.AddWithValue("@set_name", this.set_name);
-                cmd.Parameters.AddWithValue("@set", this.set);
-                cmd.Parameters.AddWithValue("@type_line", this.type_line);
-                cmd.Parameters.AddWithValue("@prints_search_uri", this.prints_search_uri);
-
-                string images = Newtonsoft.Json.JsonConvert.SerializeObject(this.image_uris);
-                cmd.Parameters.AddWithValue("@image_uris", images);
-
-                //cmd.Parameters.AddWithValue("@json_string", this.ToJson());
-
-                cmd.ExecuteNonQuery();
             }
             catch (Exception ex)
             {
@@ -220,38 +202,61 @@ namespace ScryfallConnector.Classes
             
         }
 
-        public bool NewSaveToDB(SqliteDB dB)
-        {
-            bool retval = false;
-            try
-            {
-                // save all the stuff
-            }
-            catch (Exception)
-            {
-                retval = false;
-                throw;
-            }
-            return retval;
-        }
-
         private SqlCeCommand GenerateSaveSqlCmd(SqliteDB dB)
         {
 
-            SqlCeCommand cmd;
-
+            SqlCeCommand cmd = new SqlCeCommand();
+            bool needsComma = false;
             try
             {
                 
 
-                string sqlInsert = "INSERT INTO Card";
+                string sqlInsert = "INSERT INTO Card ";
                 // TODO use reflection to build this string
-                string sqlFields = "(id, name, set_name, set_abbr, type_line, prints_search_uri, image_uris)";
+                string demoSqlFields = "(id, name, set_name, set_abbr, type_line, prints_search_uri, image_uris)";
+
                 // TODO use reflection to build this string
-                string sqlValues = "VALUES (@id, @name, @set_name, @set_abbr, @type_line, @prints_search_uri, @image_uris)";
+                string demoSqlValues = "VALUES (@id, @name, @set_name, @set_abbr, @type_line, @prints_search_uri, @image_uris)";
+
+                string sqlFields = string.Empty;
+                sqlFields += "(";
+
+                string sqlValues = string.Empty;
+                sqlValues += "VALUES (";
+
+                // loop through all properties for a ScryfallCard and build the string
+                PropertyInfo[] pi = typeof(ScryfallCard).GetProperties();
+                foreach (PropertyInfo info in pi)
+                {
+                    //DEBUG
+                    //if (info.Name == "color_identity")
+                    //{
+                    //    Console.WriteLine("here");
+                    //}
+                    switch (info.Name)
+                    {
+                        case "card_PK":
+                        //case "dateAdded":
+                        //case "dateModified":
+                        //case "modifiedMethod":
+                            continue;
+                    }
+                    if (needsComma)
+                    {
+                        sqlFields += ", ";
+                        sqlValues += ", ";
+                    }
+                    needsComma = true;
+                    sqlFields += "[" + info.Name + "]";
+                    sqlValues += "@" + info.Name;
+                }
+
+                sqlFields += ") ";
+                sqlValues += ") ";
+
+
 
                 cmd = new SqlCeCommand(sqlInsert + sqlFields + sqlValues, dB.connection);
-
 
             }
             catch (Exception)
@@ -261,6 +266,70 @@ namespace ScryfallConnector.Classes
             }
 
             return cmd;
+        }
+
+        private void LoadCardIntoSqlCmd(ScryfallCard card, ref SqlCeCommand cmd)
+        {
+            try
+            {
+                PropertyInfo[] pi = typeof(ScryfallCard).GetProperties();
+                foreach (PropertyInfo info in pi)
+                {
+                    //DEBUG
+                    if (info.Name == "color_identity")
+                    {
+                        Console.WriteLine("here");
+                    }
+                    switch (info.Name)
+                    {
+                        case "card_PK":
+                        case "dateAdded":
+                        case "dateModified":
+                        case "modifiedMethod":
+                            continue;
+                    }
+                    TypeCode typeCode = Type.GetTypeCode(info.PropertyType);
+                    switch (typeCode)
+                    {
+                        case TypeCode.Object:
+                            HandleSerializedValue(ref cmd, info, card);
+                            continue;
+                    }
+                    if (info.GetValue(card) is null)
+                    {
+                        cmd.Parameters.AddWithValue("@" + info.Name, "NULL");
+                    } 
+                    else
+                    {
+                        // get the property and add it as the value for the cmd
+                        cmd.Parameters.AddWithValue("@" + info.Name, info.GetValue(card));
+                    }
+                }
+
+                cmd.Parameters.AddWithValue("@dateAdded", DateTime.Now.ToString());
+                cmd.Parameters.AddWithValue("@dateModified", DateTime.Now.ToString());
+                cmd.Parameters.AddWithValue("@modifiedMethod", 1);
+
+            }
+            catch (Exception ex)
+            {
+
+                throw;
+            }
+        }
+
+        private void HandleSerializedValue(ref SqlCeCommand cmd, PropertyInfo info, ScryfallCard card)
+        {
+            try
+            {
+                string serialized = Newtonsoft.Json.JsonConvert.SerializeObject(info.GetValue(card));
+                cmd.Parameters.AddWithValue("@" + info.Name, serialized);
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
         }
 
         public static ScryfallCard LoadFromDB(DataRow row)
