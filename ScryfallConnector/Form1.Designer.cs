@@ -39,6 +39,7 @@
             this.treeView1 = new System.Windows.Forms.TreeView();
             this.chkPopulateJson = new System.Windows.Forms.CheckBox();
             this.btnOpenDeckBuilder = new System.Windows.Forms.Button();
+            this.btnFlipCard = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.picCard)).BeginInit();
             this.SuspendLayout();
             // 
@@ -135,11 +136,23 @@
             this.btnOpenDeckBuilder.UseVisualStyleBackColor = true;
             this.btnOpenDeckBuilder.Click += new System.EventHandler(this.btnOpenDeckBuilder_Click);
             // 
+            // btnFlipCard
+            // 
+            this.btnFlipCard.Enabled = false;
+            this.btnFlipCard.Location = new System.Drawing.Point(483, 329);
+            this.btnFlipCard.Name = "btnFlipCard";
+            this.btnFlipCard.Size = new System.Drawing.Size(75, 23);
+            this.btnFlipCard.TabIndex = 10;
+            this.btnFlipCard.Text = "Flip Card";
+            this.btnFlipCard.UseVisualStyleBackColor = true;
+            this.btnFlipCard.Click += new System.EventHandler(this.btnFlipCard_Click);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(652, 375);
+            this.Controls.Add(this.btnFlipCard);
             this.Controls.Add(this.btnOpenDeckBuilder);
             this.Controls.Add(this.chkPopulateJson);
             this.Controls.Add(this.treeView1);
@@ -169,6 +182,7 @@
         private System.Windows.Forms.TreeView treeView1;
         private System.Windows.Forms.CheckBox chkPopulateJson;
         private System.Windows.Forms.Button btnOpenDeckBuilder;
+        private System.Windows.Forms.Button btnFlipCard;
     }
 }
 

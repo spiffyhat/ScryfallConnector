@@ -40,8 +40,8 @@ namespace ScryfallConnector.Classes
         public string Uri { get; set; }
 
         // Gameplay fields
-        public string[] all_parts { get; set; }
-        public string[] card_faces { get; set; }
+        public Related_Card[] all_parts { get; set; }
+        public Card_Face[] card_faces { get; set; }
         public float cmc { get; set; }
         public string[] color_identity { get; set; }
         public string[] color_indicator { get; set; }
@@ -86,7 +86,7 @@ namespace ScryfallConnector.Classes
         public string printed_text { get; set; }
         public string printed_type_line { get; set; }
         public bool promo { get; set; }
-        public string promo_types { get; set; }
+        public string[] promo_types { get; set; }
         public Purchase_Uris purchase_uris { get; set; }
         public string rarity { get; set; }
         public Related_Uris related_uris { get; set; }
@@ -107,9 +107,43 @@ namespace ScryfallConnector.Classes
 
         #endregion
         #region Subclasses
+        public class Card_Face
+        {
+            public string artist { get; set; }
+            public string[] color_indicator { get; set; }
+            public string[] colors { get; set; }
+            public string flavor_text { get; set; }
+            public string illustration_id { get; set; }
+            public Image_Uris image_uris { get; set; }
+            public string loyalty { get; set; }
+            public string mana_cost { get; set; }
+            public string name { get; set; }
+            public string @object { get; set; }
+            public string oracle_text { get; set; }
+            public string power { get; set; }
+            public string printed_name { get; set; }
+            public string printed_text { get; set; }
+            public string printed_type_line { get; set; }
+            public string toughness { get; set; }
+            public string type_line { get; set; }
+            public string watermark { get; set; }
+        }
+
         public class Preview
         {
-            // TODO add preview properties
+            public DateTime previewed_at { get; set; }
+            public string source_uri { get; set; }
+            public string source { get; set; }
+        }
+
+        public class Related_Card
+        {
+            public string id { get; set; }
+            public string @object {get;set;}
+            public string @component { get; set; }
+            public string @name { get; set; }
+            public string type_line { get; set; }
+            public string @uri { get; set; }
         }
 
         public class Image_Uris
@@ -170,14 +204,24 @@ namespace ScryfallConnector.Classes
 
         public static ScryfallCard FromJson(string json)
         {
-            //DEBUG
-            using (StreamWriter file = File.CreateText(@".\testcard.json"))
+            ScryfallCard card;
+            try
             {
-                JsonSerializer serializer = new JsonSerializer();
-                serializer.Serialize(file, json);
-            }
+                //DEBUG
+                using (StreamWriter file = File.CreateText(@".\testcard.json"))
+                {
+                    JsonSerializer serializer = new JsonSerializer();
+                    serializer.Serialize(file, json);
+                }
 
-            ScryfallCard card = Newtonsoft.Json.JsonConvert.DeserializeObject<ScryfallCard>(json);
+                card = Newtonsoft.Json.JsonConvert.DeserializeObject<ScryfallCard>(json);
+            }
+            catch (Exception ex)
+            {
+
+                throw;
+            }
+            
             return card;
         }
 
@@ -275,11 +319,11 @@ namespace ScryfallConnector.Classes
                 PropertyInfo[] pi = typeof(ScryfallCard).GetProperties();
                 foreach (PropertyInfo info in pi)
                 {
-                    //DEBUG
-                    if (info.Name == "color_identity")
-                    {
-                        Console.WriteLine("here");
-                    }
+                    ////DEBUG
+                    //if (info.Name == "color_identity")
+                    //{
+                    //    Console.WriteLine("here");
+                    //}
                     switch (info.Name)
                     {
                         case "card_PK":
@@ -337,15 +381,17 @@ namespace ScryfallConnector.Classes
             ScryfallCard retval = new ScryfallCard();
 
             retval.id = row["id"].ToString();
-            retval.Name = row["card_name"].ToString();
+            retval.Name = row["name"].ToString();
             retval.set_name = row["set_name"].ToString();
-            retval.set = row["set_abbr"].ToString();
+            retval.set = row["set"].ToString();
             retval.type_line = row["type_line"].ToString();
+            retval.card_faces = JsonConvert.DeserializeObject<Card_Face[]>(row["card_faces"].ToString());
             retval.prints_search_uri = row["prints_search_uri"].ToString();
 
             retval.image_uris = Newtonsoft.Json.JsonConvert.DeserializeObject<Image_Uris>(row["image_uris"].ToString());
 
             //retval.json_string = row["json_string"].ToString();
+            //TODO: reflection
 
             return retval;
         }

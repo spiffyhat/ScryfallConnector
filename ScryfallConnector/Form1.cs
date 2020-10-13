@@ -17,6 +17,7 @@ namespace ScryfallConnector
         SqliteDB dB = new SqliteDB();
         ScryfallEngine engine;
         ScryfallCard currentCard = new ScryfallCard();
+        bool frontFace = true;
         bool validAutocomplete = false;
 
         public MainForm()
@@ -41,6 +42,8 @@ namespace ScryfallConnector
             if (this.currentCard != null)
             {
                 this.picCard.Image = engine.GetCardImage(currentCard);
+                this.frontFace = true;
+                this.btnFlipCard.Enabled = (this.currentCard != null && this.currentCard.card_faces != null);
                 this.txtCardName.Text = currentCard.Name;
                 if (this.chkPopulateJson.Checked)
                 {
@@ -55,6 +58,20 @@ namespace ScryfallConnector
                 this.treeView1.Nodes.Clear();
             }
            
+        }
+
+        private void FlipCard()
+        {
+            if (frontFace)
+            {
+                // get the back image
+                // frontFace = false
+            }
+            else
+            {
+                // get the front image
+                // frontFace = true
+            }
         }
 
         private List<string> SuggestStrings(string text, bool include_extras)
@@ -330,6 +347,11 @@ namespace ScryfallConnector
         private void treeView1_DoubleClick(object sender, EventArgs e)
         {
             if (this.treeView1.SelectedNode != null) Clipboard.SetText(treeView1.SelectedNode.Text);
+        }
+
+        private void btnFlipCard_Click(object sender, EventArgs e)
+        {
+            FlipCard();
         }
     }
 }

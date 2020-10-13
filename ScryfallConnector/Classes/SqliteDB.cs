@@ -156,7 +156,7 @@ namespace ScryfallConnector.Classes
                 createCardsTable += "content_warning bit,";
                 createCardsTable += "digital bit not null,";
                 createCardsTable += "flavor_name nvarchar(50),";
-                createCardsTable += "flavor_text nvarchar(200),";
+                createCardsTable += "flavor_text nvarchar(400),";
                 createCardsTable += "frame_effects nvarchar(25),";
                 createCardsTable += "frame nvarchar(10) not null,";
                 createCardsTable += "full_art bit not null,";
