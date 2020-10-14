@@ -40,7 +40,7 @@ namespace ScryfallConnector.Classes
         {
             if (this.currentCard != null )
             {
-                this.picCard.Image = engine.GetCardImage(currentCard);
+                this.picCard.Image = engine.GetCardImage(currentCard, true);
             } else
             {
                 this.picCard.Image = null;

@@ -236,7 +236,7 @@ namespace ScryfallConnector.Classes
                 LoadCardIntoSqlCmd(this, ref testCmd);
 
                 testCmd.ExecuteNonQuery();
-
+                Console.WriteLine(String.Format("card {0} added to DB", this.Name));
             }
             catch (Exception ex)
             {
@@ -256,11 +256,6 @@ namespace ScryfallConnector.Classes
                 
 
                 string sqlInsert = "INSERT INTO Card ";
-                // TODO use reflection to build this string
-                string demoSqlFields = "(id, name, set_name, set_abbr, type_line, prints_search_uri, image_uris)";
-
-                // TODO use reflection to build this string
-                string demoSqlValues = "VALUES (@id, @name, @set_name, @set_abbr, @type_line, @prints_search_uri, @image_uris)";
 
                 string sqlFields = string.Empty;
                 sqlFields += "(";

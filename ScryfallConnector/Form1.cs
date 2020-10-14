@@ -41,9 +41,12 @@ namespace ScryfallConnector
             this.treeView1.Nodes.Clear();
             if (this.currentCard != null)
             {
-                this.picCard.Image = engine.GetCardImage(currentCard);
+                this.picCard.Image = engine.GetCardImage(currentCard, true);
                 this.frontFace = true;
-                this.btnFlipCard.Enabled = (this.currentCard != null && this.currentCard.card_faces != null);
+                this.btnFlipCard.Enabled = (this.currentCard != null
+                                            && this.currentCard.card_faces != null
+                                            && this.currentCard.card_faces.Length == 2
+                                            && this.currentCard.card_faces[1].image_uris != null);
                 this.txtCardName.Text = currentCard.Name;
                 if (this.chkPopulateJson.Checked)
                 {
@@ -65,12 +68,14 @@ namespace ScryfallConnector
             if (frontFace)
             {
                 // get the back image
-                // frontFace = false
+                this.picCard.Image = engine.GetCardImage(currentCard, false);
+                frontFace = false;
             }
             else
             {
                 // get the front image
-                // frontFace = true
+                this.picCard.Image = engine.GetCardImage(currentCard, true);
+                frontFace = true;
             }
         }
 

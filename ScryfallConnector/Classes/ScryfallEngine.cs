@@ -31,48 +31,265 @@ namespace ScryfallConnector.Classes
             client.BaseAddress = new Uri("https://api.scryfall.com/");
         }
 
-        public Image GetCardImage(ScryfallCard card)
+        public Image GetCardImage(ScryfallCard card, bool frontFace)
         {
-            return FetchCardImage(card);
+            return FetchCardImage(card, frontFace);
         }
 
-        private Image FetchCardImage(ScryfallCard card)
+        private Image FetchCardImage(ScryfallCard card, bool frontFace)
         {
             Image retval = null;
             string cardID = card.id;
             string imageURL;
+            string imagePath;
+
             SqlCeCommand cmd = new SqlCeCommand("SELECT * FROM CardImage WHERE Card_ID = \'" + cardID + "\'", db.connection);
             SqlCeDataAdapter da = new SqlCeDataAdapter(cmd);
             DataTable result = new DataTable();
             da.Fill(result);
-            if (result.Rows.Count != 0)
-            {
-                imageURL = result.Rows[0]["Local_Filepath"].ToString();
-                retval = Bitmap.FromFile(".\\images\\" + imageURL);
-            } else
-            {
-                if (card.image_uris.normal != null)
-                {
-                    imageURL = card.image_uris.normal;
 
-                    System.Net.WebRequest request = System.Net.WebRequest.Create(imageURL);
-                    System.Net.WebResponse response = request.GetResponse();
-                    System.IO.Stream responseStream =
-                        response.GetResponseStream();
-                    retval = new Bitmap(responseStream);
 
-                    //string filePath = (".\\images\\" + cardID + ".jpg");
-                    string filePath = cardID + ".jpg";
-                    retval.Save(".\\images\\" + filePath);
-                    cmd = new SqlCeCommand("INSERT INTO CardImage (Card_ID, Image_URL, Local_Filepath)" +
-                                            "VALUES (@Card_ID, @Image_URL, @Local_Filepath)", db.connection);
-                    cmd.Parameters.AddWithValue("@Card_ID", cardID);
-                    cmd.Parameters.AddWithValue("@Image_URL", imageURL);
-                    cmd.Parameters.AddWithValue("@Local_Filepath", filePath);
-                    cmd.ExecuteNonQuery();
-                }
+            switch (result.Rows.Count)
+            {
                 
+                case 0: // no rows returned
+                    // we want the front face
+                    if (frontFace)
+                    {
+                        // if the card is single faced and the normal image url isn't misssing
+                        if (card.image_uris != null && card.image_uris.normal != null)
+                        {
+                            imageURL = card.image_uris.normal;
+
+                            System.Net.WebRequest request = System.Net.WebRequest.Create(imageURL);
+                            System.Net.WebResponse response = request.GetResponse();
+                            System.IO.Stream responseStream =
+                                response.GetResponseStream();
+                            retval = new Bitmap(responseStream);
+
+                            string filePath = cardID + ".jpg";
+                            retval.Save(".\\images\\" + filePath);
+                            cmd = new SqlCeCommand("INSERT INTO CardImage (Card_ID, Image_URL, Local_Filepath)" +
+                                                    "VALUES (@Card_ID, @Image_URL, @Local_Filepath)", db.connection);
+                            cmd.Parameters.AddWithValue("@Card_ID", cardID);
+                            cmd.Parameters.AddWithValue("@Image_URL", imageURL);
+                            cmd.Parameters.AddWithValue("@Local_Filepath", filePath);
+                            cmd.ExecuteNonQuery();
+                        }
+                        // if the card is multifaced
+                        else if (card.card_faces != null)
+                        {
+                            // if the front face image url is present
+                            if (card.card_faces[0].image_uris != null && card.card_faces[0].image_uris.normal != null)
+                            {
+                                imageURL = card.card_faces[0].image_uris.normal;
+
+                                System.Net.WebRequest request = System.Net.WebRequest.Create(imageURL);
+                                System.Net.WebResponse response = request.GetResponse();
+                                System.IO.Stream responseStream =
+                                    response.GetResponseStream();
+                                retval = new Bitmap(responseStream);
+
+                                string filePath = cardID + "_0" + ".jpg";
+
+                                retval.Save(".\\images\\" + filePath);
+                                cmd = new SqlCeCommand("INSERT INTO CardImage (Card_ID, Image_URL, Local_Filepath)" +
+                                                        "VALUES (@Card_ID, @Image_URL, @Local_Filepath)", db.connection);
+                                cmd.Parameters.AddWithValue("@Card_ID", cardID);
+                                cmd.Parameters.AddWithValue("@Image_URL", imageURL);
+                                cmd.Parameters.AddWithValue("@Local_Filepath", filePath);
+                                cmd.ExecuteNonQuery();
+                            }
+                        }
+                        else
+                        {
+                            throw new Exception("wtf?");
+                        }
+                    }
+                    else // we want the back face (it must be multifaced)
+                    {
+                        // if the back face url is present
+                        if (card.card_faces[1].image_uris != null && card.card_faces[1].image_uris.normal != null)
+                        {
+                            imageURL = card.card_faces[1].image_uris.normal;
+
+                            System.Net.WebRequest request = System.Net.WebRequest.Create(imageURL);
+                            System.Net.WebResponse response = request.GetResponse();
+                            System.IO.Stream responseStream =
+                                response.GetResponseStream();
+                            retval = new Bitmap(responseStream);
+
+                            string filePath = cardID + "_1" + ".jpg";
+
+                            retval.Save(".\\images\\" + filePath);
+                            cmd = new SqlCeCommand("INSERT INTO CardImage (Card_ID, Image_URL, Local_Filepath)" +
+                                                    "VALUES (@Card_ID, @Image_URL, @Local_Filepath)", db.connection);
+                            cmd.Parameters.AddWithValue("@Card_ID", cardID);
+                            cmd.Parameters.AddWithValue("@Image_URL", imageURL);
+                            cmd.Parameters.AddWithValue("@Local_Filepath", filePath);
+                            cmd.ExecuteNonQuery();
+                        }
+                        else
+                        {
+                            throw new NotImplementedException("Image url missing!");
+                        }
+                    }
+                    break;
+
+                     
+                case 1: // only one row returned
+                    if (frontFace)
+                    {
+                        // if the card is NOT multifaced or the card is multifaced but one-sided
+                        if (card.card_faces == null || card.card_faces[1].image_uris == null)
+                        {
+                            imagePath = result.Rows[0]["Local_Filepath"].ToString();
+                            retval = Bitmap.FromFile(".\\images\\" + imagePath);
+                        }
+                        else
+                        {
+                            throw new Exception("wtf");
+                        }
+                    }
+                    else // the card is multifaced and we want the back face
+                    {
+                        if (result.Rows[0]["Local_Filepath"].ToString().EndsWith("_1.jpg")) // if somehow the only row returned is the back face image
+                        {
+                            imagePath = result.Rows[0]["Local_Filepath"].ToString();
+                            retval = Bitmap.FromFile(".\\images\\" + imagePath);
+                        }
+                        else if (card.card_faces[1].image_uris != null && card.card_faces[1].image_uris.normal != null) // if the back face image url is present
+                        {
+                            imageURL = card.card_faces[1].image_uris.normal;
+
+                            System.Net.WebRequest request = System.Net.WebRequest.Create(imageURL);
+                            System.Net.WebResponse response = request.GetResponse();
+                            System.IO.Stream responseStream =
+                                response.GetResponseStream();
+                            retval = new Bitmap(responseStream);
+
+                            string filePath = cardID + "_1" + ".jpg";
+
+                            retval.Save(".\\images\\" + filePath);
+                            cmd = new SqlCeCommand("INSERT INTO CardImage (Card_ID, Image_URL, Local_Filepath)" +
+                                                    "VALUES (@Card_ID, @Image_URL, @Local_Filepath)", db.connection);
+                            cmd.Parameters.AddWithValue("@Card_ID", cardID);
+                            cmd.Parameters.AddWithValue("@Image_URL", imageURL);
+                            cmd.Parameters.AddWithValue("@Local_Filepath", filePath);
+                            cmd.ExecuteNonQuery();
+                        }
+                        else
+                        {
+                            throw new NotImplementedException("Second face image url missing!");
+                        }
+                    }
+                    break;
+
+
+                default: // more than 1 row returned
+                    if (frontFace) // we want the front face
+                    {
+                        if (result.Rows[0]["Local_Filepath"].ToString().EndsWith("_0.jpg")) // if row 1 is the front face
+                        {
+                            imagePath = result.Rows[0]["Local_Filepath"].ToString();
+                            retval = Bitmap.FromFile(".\\images\\" + imagePath);
+                        }
+                        else if (result.Rows[1]["Local_Filepath"].ToString().EndsWith("_0.jpg")) // if row 2 is the front face
+                        {
+                            imagePath = result.Rows[1]["Local_Filepath"].ToString();
+                            retval = Bitmap.FromFile(".\\images\\" + imagePath);
+                        }
+                        else
+                        {
+                            throw new Exception("wtf");
+                        }
+                    }
+                    else // we want the back face
+                    {
+                        if (result.Rows[0]["Local_Filepath"].ToString().EndsWith("_1.jpg")) // if row 1 is the back face
+                        {
+                            imagePath = result.Rows[0]["Local_Filepath"].ToString();
+                            retval = Bitmap.FromFile(".\\images\\" + imagePath);
+                        }
+                        else if (result.Rows[1]["Local_Filepath"].ToString().EndsWith("_1.jpg")) // if row 2 is the back face
+                        {
+                            imagePath = result.Rows[1]["Local_Filepath"].ToString();
+                            retval = Bitmap.FromFile(".\\images\\" + imagePath);
+                        }
+                        else
+                        {
+                            throw new Exception("wtf");
+                        }
+                    }
+                    break;
             }
+
+
+            // OLD VERSION
+            //if (frontFace && result.Rows.Count == 1)
+            //{
+            //    imageURL = result.Rows[0]["Local_Filepath"].ToString();
+            //    retval = Bitmap.FromFile(".\\images\\" + imageURL);
+            //} else
+            //{
+            //    if (frontFace && card.image_uris != null && card.image_uris.normal != null)
+            //    {
+            //        imageURL = card.image_uris.normal;
+
+            //        System.Net.WebRequest request = System.Net.WebRequest.Create(imageURL);
+            //        System.Net.WebResponse response = request.GetResponse();
+            //        System.IO.Stream responseStream =
+            //            response.GetResponseStream();
+            //        retval = new Bitmap(responseStream);
+
+            //        //string filePath = (".\\images\\" + cardID + ".jpg");
+            //        string filePath = cardID + ".jpg";
+            //        retval.Save(".\\images\\" + filePath);
+            //        cmd = new SqlCeCommand("INSERT INTO CardImage (Card_ID, Image_URL, Local_Filepath)" +
+            //                                "VALUES (@Card_ID, @Image_URL, @Local_Filepath)", db.connection);
+            //        cmd.Parameters.AddWithValue("@Card_ID", cardID);
+            //        cmd.Parameters.AddWithValue("@Image_URL", imageURL);
+            //        cmd.Parameters.AddWithValue("@Local_Filepath", filePath);
+            //        cmd.ExecuteNonQuery();
+            //    }
+            //    else if (card.card_faces != null && card.card_faces[0].image_uris != null && card.card_faces[0].image_uris.normal != null)
+            //    {
+            //        if (frontFace)
+            //        {
+            //            imageURL = card.card_faces[0].image_uris.normal;
+            //        }
+            //        else
+            //        {
+            //            if (card.card_faces[1] != null
+            //                && card.card_faces[1].image_uris != null
+            //                && card.card_faces[1].image_uris.normal != null)
+            //                {
+            //                    imageURL = card.card_faces[1].image_uris.normal;
+            //                }
+            //            else
+            //            {
+            //                throw new NotImplementedException("Second face has no image!");
+            //            }
+            //        }
+
+            //        System.Net.WebRequest request = System.Net.WebRequest.Create(imageURL);
+            //        System.Net.WebResponse response = request.GetResponse();
+            //        System.IO.Stream responseStream =
+            //            response.GetResponseStream();
+            //        retval = new Bitmap(responseStream);
+
+            //        //string filePath = (".\\images\\" + cardID + ".jpg");
+            //        string filePath = cardID + ".jpg";
+            //        retval.Save(".\\images\\" + filePath);
+            //        cmd = new SqlCeCommand("INSERT INTO CardImage (Card_ID, Image_URL, Local_Filepath)" +
+            //                                "VALUES (@Card_ID, @Image_URL, @Local_Filepath)", db.connection);
+            //        cmd.Parameters.AddWithValue("@Card_ID", cardID);
+            //        cmd.Parameters.AddWithValue("@Image_URL", imageURL);
+            //        cmd.Parameters.AddWithValue("@Local_Filepath", filePath);
+            //        cmd.ExecuteNonQuery();
+            //    }
+                
+            //}
 
             return retval;
         }
@@ -105,6 +322,17 @@ namespace ScryfallConnector.Classes
                 responseContent = response.Content.ReadAsStringAsync().Result;
 
                 card = ScryfallCard.FromJson(responseContent);
+
+                SqlCeCommand cmd = new SqlCeCommand("SELECT * FROM CARD WHERE [id] like \'" + card.id + "\'", db.connection);
+                SqlCeDataAdapter da = new SqlCeDataAdapter(cmd);
+                DataTable result = new DataTable();
+                da.Fill(result);
+
+                if (result.Rows.Count == 0)
+                {
+                    card.SaveToDB(db);
+                }
+
             }
             catch (Exception ex)
             {
@@ -309,7 +537,6 @@ namespace ScryfallConnector.Classes
                     retval = ScryfallCard.FromJson(responseContent);
 
                     retval.SaveToDB(db);
-                    Console.WriteLine(String.Format("card {0} added to DB", text));
                 }
             }
             catch (Exception ex)
