@@ -74,11 +74,15 @@ namespace ScryfallConnector.Classes
             engine.FetchPrintsByUrl(currentCard);
 
             this.currentCard = this.engine.GetNamedCardExact("Swamp");
-            for (int i = 0; i < 33; i++)
+            for (int i = 0; i < 32; i++)
             {
                 this.deck.cards.Add(currentCard);
                 
             }
+            engine.FetchPrintsByUrl(currentCard);
+
+            this.currentCard = this.engine.GetNamedCardExact("Jeweled Lotus"); // for named card probability testing
+            this.deck.cards.Add(currentCard);
             engine.FetchPrintsByUrl(currentCard);
 
             this.currentCard = this.engine.GetNamedCardExact("K\'rrik, Son of Yawgmoth");
@@ -239,14 +243,17 @@ namespace ScryfallConnector.Classes
             return retval;
         }
 
-        private string RunProbabilityTest(Deck deck, int times, bool verboseLog)
+        private string RunProbabilityTest(Deck deck, int times, bool verboseLog, ScryfallCard cardToFind)
         {
             string retval = string.Empty;
             string handResult = string.Empty;
-            string handResultTemplate = "Opening hand {0}: {1} lands, {2} nonlands.";
+            string handResultTemplate = "Opening hand: ";
             string endResultTemplate = "Total hands: {0}. {1} lands, {2} nonlands, {3} total cards drawn.";
             string averageTemplate = "Average lands per hand: {0}";
             string landHandsTemplate = "Hands by land distribution: {0} zero, {1} one, {2} two, {3} three, {4} four, {5} five, {6} six, {7} seven.";
+            string foundCardResultTemplate = "Hands with {0}: {1}";
+            string foundCardPercentTemplate = "Chance to have {0} in opening hand: {1}%";
+            bool needsComma = false;
             int counter = 0;
             int lands = 0;
             int nonlands = 0;
@@ -265,6 +272,10 @@ namespace ScryfallConnector.Classes
             int sevenLand = 0;
 
             decimal averageLandsPerHand = 0;
+            decimal foundCardPercent = 0;
+
+            bool findCard = (cardToFind != null);
+            int handsWithCard = 0;
 
             List<ScryfallCard> hand = new List<ScryfallCard>();
             try
@@ -278,7 +289,20 @@ namespace ScryfallConnector.Classes
                     handResult = String.Format(handResultTemplate, counter, lands, nonlands);
                     if (verboseLog)
                     {
-                        retval += handResult + Environment.NewLine;
+                        retval += handResult;
+                        foreach (ScryfallCard card in hand)
+                        {
+                            if (needsComma)
+                            {
+                                retval += ", ";
+                            }
+
+                            needsComma = true;
+                            retval += card.Name;
+
+                        }
+                        retval += Environment.NewLine;
+                        needsComma = false;
                     }
                     totalLands += lands;
                     totalNonLands += nonlands;
@@ -310,6 +334,13 @@ namespace ScryfallConnector.Classes
                             sevenLand++;
                             break;
                     }
+                    if (findCard)
+                    {
+                        if (FindCard(cardToFind, hand))
+                        {
+                            handsWithCard++;
+                        }
+                    }
                 }
                 averageLandsPerHand = (decimal)totalLands / (decimal)counter;
                 averageLandsPerHand = Math.Round(averageLandsPerHand, 2);
@@ -321,6 +352,14 @@ namespace ScryfallConnector.Classes
                     retval += Environment.NewLine;
                     retval += string.Format(landHandsTemplate, zeroLand, oneLand, twoLand, threeLand, fourLand, fiveLand, sixLand, sevenLand);
                 }
+                if (findCard)
+                {
+                    foundCardPercent = ((decimal)handsWithCard / (decimal)times) * 100;
+                    retval += Environment.NewLine;
+                    retval += string.Format(foundCardResultTemplate, cardToFind.Name, handsWithCard);
+                    retval += Environment.NewLine;
+                    retval += string.Format(foundCardPercentTemplate, cardToFind.Name, foundCardPercent);
+                }
                 UpdateControlStates();
             }
             catch (Exception)
@@ -331,15 +370,42 @@ namespace ScryfallConnector.Classes
             return retval;
         }
 
+        private bool FindCard(ScryfallCard cardToFind, List<ScryfallCard> list)
+        {
+            bool retval = false;
+
+            try
+            {
+                foreach (ScryfallCard card in list)
+                {
+                    if (card.Name == cardToFind.Name)
+                    {
+                        retval = true;
+                        break;
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+            return retval;
+        }
+
         private void HandleTestButton()
         {
             this.btnTestStartingHands.Enabled = false;
+            ScryfallCard cardToFind = null; // the method can handle a null value passed
+            if (this.chkFindCard.Checked == true)
+            {
+                cardToFind = currentCard;
+            }
             if (int.Parse(this.txtTimes.Text) >= 5)
             {
-                this.txtTestOutput.Text = RunProbabilityTest(this.deck, int.Parse(this.txtTimes.Text), false);
+                this.txtTestOutput.Text = RunProbabilityTest(this.deck, int.Parse(this.txtTimes.Text), false, cardToFind);
             } else
             {
-                this.txtTestOutput.Text = RunProbabilityTest(this.deck, int.Parse(this.txtTimes.Text), true);
+                this.txtTestOutput.Text = RunProbabilityTest(this.deck, int.Parse(this.txtTimes.Text), true, cardToFind);
             }
             this.btnTestStartingHands.Enabled = true;
         }
@@ -452,10 +518,13 @@ namespace ScryfallConnector.Classes
         private void UpdateControlStates()
         {
             this.btnSetCommander.Enabled = (this.currentCard != null && this.deck.commander == null);
+            
             this.btnAddCard.Enabled = (this.currentCard != null && this.deck.commander != null && this.txtCopies.Text != string.Empty);
             if (this.deck.commander != null) this.txtCommander.Text = this.deck.commander.Name;
             if (this.currentCard != null) ShowCurrentCard();
             this.lblDecklist.Text = string.Format("Decklist ({0})", this.deck.cards.Count);
+
+            this.chkFindCard.Enabled = (this.currentCard != null);
         }
 
         private void btnSetCommander_Click(object sender, EventArgs e)
