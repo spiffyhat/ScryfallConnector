@@ -42,7 +42,7 @@ namespace ScryfallConnector.Classes
         // Gameplay fields
         public Related_Card[] all_parts { get; set; }
         public Card_Face[] card_faces { get; set; }
-        public float cmc { get; set; }
+        public decimal cmc { get; set; }
         public string[] color_identity { get; set; }
         public string[] color_indicator { get; set; }
         public string[] colors { get; set; }
@@ -371,7 +371,7 @@ namespace ScryfallConnector.Classes
             }
         }
 
-        public static ScryfallCard LoadFromDB(DataRow row)
+        public static ScryfallCard LoadFromDBOld(DataRow row)
         {
             ScryfallCard retval = new ScryfallCard();
 
@@ -388,6 +388,34 @@ namespace ScryfallConnector.Classes
             //retval.json_string = row["json_string"].ToString();
             //TODO: reflection
 
+            return retval;
+        }
+
+        public static ScryfallCard LoadFromDB(DataRow row)
+        {
+            string propName = string.Empty;
+            ScryfallCard retval = new ScryfallCard();
+            try
+            {
+                PropertyInfo[] pi = typeof(ScryfallCard).GetProperties();
+                foreach (PropertyInfo prop in pi)
+                {
+                    propName = prop.Name;
+                    TypeCode typeCode = Type.GetTypeCode(prop.PropertyType);
+                    if (typeCode == TypeCode.Object)
+                    {
+                        prop.SetValue(retval, JsonConvert.DeserializeObject(row[propName].ToString(), prop.PropertyType), null);
+                    }
+                    else
+                    {
+                        prop.SetValue(retval, row[propName], null);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                retval = null;
+            }
             return retval;
         }
 

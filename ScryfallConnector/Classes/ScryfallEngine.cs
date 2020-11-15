@@ -525,6 +525,7 @@ namespace ScryfallConnector.Classes
                 else if (result.Rows.Count != 0)
                 {
                     Console.WriteLine(String.Format("card {0} exists in DB", text));
+                    //retval = ScryfallCard.LoadFromDB(result.Rows[0]);
                     retval = ScryfallCard.LoadFromDB(result.Rows[0]);
                 }
                 else
