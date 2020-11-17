@@ -358,5 +358,11 @@ namespace ScryfallConnector
         {
             FlipCard();
         }
+
+        private void btnOpenBulkData_Click(object sender, EventArgs e)
+        {
+            BulkDataForm form = new BulkDataForm(this.dB);
+            form.ShowDialog();
+        }
     }
 }

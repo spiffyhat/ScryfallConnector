@@ -391,7 +391,7 @@ namespace ScryfallConnector.Classes
             return retval;
         }
 
-        public static ScryfallCard LoadFromDB(DataRow row)
+        public static ScryfallCard LoadCardFromDatarow(DataRow row)
         {
             string propName = string.Empty;
             ScryfallCard retval = new ScryfallCard();

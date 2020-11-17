@@ -526,7 +526,7 @@ namespace ScryfallConnector.Classes
                 {
                     Console.WriteLine(String.Format("card {0} exists in DB", text));
                     //retval = ScryfallCard.LoadFromDB(result.Rows[0]);
-                    retval = ScryfallCard.LoadFromDB(result.Rows[0]);
+                    retval = ScryfallCard.LoadCardFromDatarow(result.Rows[0]);
                 }
                 else
                 {
@@ -551,5 +551,24 @@ namespace ScryfallConnector.Classes
 
         }
 
+
+        public List<string> GetListOfExistingCardIDs()
+        {
+            List<string> retval = null;
+            try
+            {
+                SqlCeCommand cmd = new SqlCeCommand("SELECT id FROM CARD", db.connection);
+                SqlCeDataAdapter da = new SqlCeDataAdapter(cmd);
+                DataTable result = new DataTable();
+                da.Fill(result);
+                retval = result.AsEnumerable().Select(r => r.Field<string>("id")).ToList();
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
+            return retval;
+        }
     }
 }

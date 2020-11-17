@@ -16,7 +16,7 @@ namespace ScryfallConnector.Classes
         public SqlCeEngine engine;
         public SqliteDB()
         {
-            filePath = "DataSource=\"appDB.sdf\"; Password=\"d7a7a247-51bd-4244-81c7-2b406a23cc69\"";
+            filePath = "DataSource=\"appDB.sdf\"; Password=\"d7a7a247-51bd-4244-81c7-2b406a23cc69\"; Max Database Size=4000;";
             engine = new SqlCeEngine(filePath);
             if (!System.IO.Directory.Exists("images"))
             {
@@ -24,12 +24,14 @@ namespace ScryfallConnector.Classes
             }
             if (!System.IO.File.Exists(".\\appDB.sdf"))
             {
+                Console.WriteLine("DB not found. Creating DB...");
                 engine.CreateDatabase();
                 OpenConnection();
                 GenerateTables();
             } else
             {
                 OpenConnection();
+                Console.WriteLine("DB found and connected.");
             }
         }
 
@@ -48,6 +50,7 @@ namespace ScryfallConnector.Classes
 
         private void GenerateCardImageTable()
         {
+            Console.WriteLine("Creating CardImage table...");
             string createImageTable = @"create table CardImage
                                         (
                                         CardImage_PK int primary key identity(1,1),
@@ -62,6 +65,7 @@ namespace ScryfallConnector.Classes
 
         private void GeneratePrintsListTable()
         {
+            Console.WriteLine("Creating PrintsList table...");
             string createPrintsListTable = @"create table PrintsList
                                         (
                                         PrintsList_PK int primary key identity(1,1),
@@ -74,6 +78,7 @@ namespace ScryfallConnector.Classes
 
         private void GenerateCardTable()
         {
+            Console.WriteLine("Creating Card table...");
             string createCardsTable = string.Empty;
             // this is gonna be the big one
             try
@@ -145,7 +150,7 @@ namespace ScryfallConnector.Classes
                 createCardsTable += "produced_mana nvarchar(50),";
                 createCardsTable += "reserved bit not null,";
                 createCardsTable += "toughness nvarchar(10),";
-                createCardsTable += "type_line nvarchar(75) not null,"; //Brokkos from IKO has 46 characters here
+                createCardsTable += "type_line nvarchar(100) not null,"; //Fucking GRIMLOCK of all cards broke this, the transformers promo. He has 79 total chars on both sides. 
 
                 // Print fields
                 createCardsTable += "artist nvarchar(100),";
@@ -156,7 +161,7 @@ namespace ScryfallConnector.Classes
                 createCardsTable += "content_warning bit,";
                 createCardsTable += "digital bit not null,";
                 createCardsTable += "flavor_name nvarchar(50),";
-                createCardsTable += "flavor_text nvarchar(400),";
+                createCardsTable += "flavor_text nvarchar(450),"; // Infinity elemental broke this, has 403 characters. Literally 3 more than the initial limit...
                 createCardsTable += "frame_effects nvarchar(25),";
                 createCardsTable += "frame nvarchar(10) not null,";
                 createCardsTable += "full_art bit not null,";
